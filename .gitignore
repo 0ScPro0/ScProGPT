@@ -1,23 +1,190 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# ==================== BACKEND (Python) ====================
 
-# testing
-/coverage
+# Virtual environments
+backend/venv/
+backend/env/
+backend/.venv
+backend/ENV/
 
-# production
-/build
+# Environment variables
+backend/.env
+backend/.env.*
+backend/.vscode/settings.json
 
-# misc
+# Python cache
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+backend/.Python
+
+# Distribution / packaging
+backend/*.egg-info/
+backend/*.egg
+backend/develop-eggs/
+backend/dist/
+backend/downloads/
+backend/eggs/
+backend/.eggs/
+backend/lib/
+backend/lib64/
+backend/parts/
+backend/sdist/
+backend/var/
+backend/wheels/
+backend/pip-wheel-metadata/
+backend/share/python-wheels/
+backend/*.manifest
+backend/*.spec
+
+# Installer logs
+backend/pip-log.txt
+backend/pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+backend/htmlcov/
+backend/.tox/
+backend/.nox/
+backend/.coverage
+backend/.cache
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.dmypy.json
+backend/dmypy.json
+
+# Database
+backend/*.db
+backend/*.sqlite3
+backend/instance/
+
+# Logs
+backend/*.log
+backend/logs/
+
+# IDE
+backend/.vscode/
+backend/.idea/
+backend/*.swp
+backend/*.swo
+
+# ==================== FRONTEND (React) ====================
+
+# Dependencies
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+frontend/.pnp.cjs
+frontend/.pnp.loader.mjs
+
+# Production
+frontend/build/
+frontend/dist/
+
+# Runtime data
+frontend/.pnp.js
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/lerna-debug.log*
+
+# Coverage directory used by tools like istanbul
+frontend/coverage/
+frontend/.nyc_output
+
+# Dependency directories
+frontend/node_modules/
+frontend/jspm_packages/
+
+# TypeScript cache
+frontend/*.tsbuildinfo
+
+# Optional npm cache directory
+frontend/.npm
+
+# Optional eslint cache
+frontend/.eslintcache
+
+# Microbundle cache
+frontend/.rpt2_cache/
+frontend/.rts2_cache_cjs/
+frontend/.rts2_cache_es/
+frontend/.rts2_cache_umd/
+
+# Optional REPL history
+frontend/.node_repl_history
+
+# Output of 'npm pack'
+frontend/*.tgz
+
+# Yarn Integrity file
+frontend/.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+frontend/.cache
+frontend/.parcel-cache
+
+# Next.js build output
+frontend/.next/
+
+# Nuxt.js build / generate output
+frontend/.nuxt/
+frontend/dist/
+
+# Gatsby files
+frontend/.cache/
+
+# Storybook build outputs
+frontend/.out/
+frontend/.storybook-out/
+
+# Temporary folders
+frontend/tmp/
+frontend/temp/
+
+# ==================== DOCKER ====================
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# ==================== OS & EDITORS ====================
+
+# OS
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Windows
+Desktop.ini
+
+# ==================== PROJECT SPECIFIC ====================
+
+# AI/ML models (если будешь хранить локально)
+*.bin
+*.gguf
+
+# API keys and secrets
+*_key.txt
+*_secret.txt
+config/secrets.*
+
+# Database dumps
+*.dump
+*.sql.gz
+backups/
