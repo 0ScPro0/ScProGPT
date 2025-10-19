@@ -1,5 +1,7 @@
  /* DARK THEME */
 [data-theme="dark"] {
     --bg-color: rgb(0, 0, 0);
+    --bg-color-07: rgba(0, 0, 0, 0.7);
     --text-color: rgb(255, 255, 255);
+    --border: 1px solid rgb(255, 255, 255);
 }
