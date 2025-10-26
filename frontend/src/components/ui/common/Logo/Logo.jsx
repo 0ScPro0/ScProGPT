@@ -1,7 +1,7 @@
 import styles from './Logo.module.css'
 //import logoImage from '../../../assets/images/logo.png';
 
-export function Logo({ onClick }) {
+export function Logo() {
   return (
     <div className={styles.logo}>
       <a href="/" className={styles.link}>

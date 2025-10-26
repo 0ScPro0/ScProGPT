@@ -1,0 +1,11 @@
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 45px;
+}
+
+.button:hover{
+    background-color: rgb(35, 35, 35);
+}

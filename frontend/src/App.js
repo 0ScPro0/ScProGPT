@@ -5,7 +5,7 @@ document.documentElement.setAttribute("data-theme", "dark")
 function App() {
   return (
     <>
-      <Home></Home>
+        <Home></Home>
     </>
   );
 }

@@ -11,5 +11,12 @@
 }
 
 .top {
-    margin: 0px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 5px;
+    margin-left: 20px;
+    margin-right: 20px;
+    border-bottom: var(--border);
+    height: 60px;
 }

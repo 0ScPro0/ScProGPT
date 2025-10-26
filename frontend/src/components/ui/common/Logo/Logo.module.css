@@ -2,7 +2,6 @@
     display: flex;
     align-items: center;
     font-weight: bold;
-    border-bottom: var(--border);
     margin: 20px;
     margin-top: 10px;
     padding: 10px;
