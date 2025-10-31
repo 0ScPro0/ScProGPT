@@ -4,8 +4,13 @@
     justify-content: center;
     cursor: pointer;
     border-radius: 45px;
+    transition: background-color 0.1s ease-in-out;
 }
 
-.button:hover{
-    background-color: rgb(35, 35, 35);
+.button:hover {
+    background-color: var(--hover-color)
+}
+
+.button:active {
+    background-color: var(--active-color);
 }

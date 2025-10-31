@@ -2,6 +2,9 @@
 [data-theme="dark"] {
     --bg-color: rgb(0, 0, 0);
     --bg-color-07: rgba(0, 0, 0, 0.7);
+    --icon-color: rgb(255, 255, 255); 
     --text-color: rgb(255, 255, 255);
     --border: 1px solid rgb(255, 255, 255);
+    --hover-color: rgb(35, 35, 35);
+    --active-color: rgb(52, 52, 52);
 }
