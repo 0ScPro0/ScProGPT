@@ -1,11 +1,23 @@
 import styles from "./Header.module.css"
-import { Logo } from "../../ui/common/Logo"
+import { ImageButton } from "../../ui/common/Button"
+
+function ChatName({children}){
+    return (
+        <div className={styles.chat_name}>
+            {children}
+        </div>
+    )
+}
+
+function Topbar(){
+
+}
 
 export function Header(){
     return(
         <>
             <header className={styles.header}>
-                <Logo/>
+            <ChatName>New Chat</ChatName>
             </header>
         </>
     )
