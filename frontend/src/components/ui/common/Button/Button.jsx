@@ -3,7 +3,7 @@ import styles from "./Button.module.css";
 export function Button({size, children, onClick, style, ...props}) {
 
     const handleClick = (event) => {
-        console.log("pressed");
+        console.log(`${styles.button} was pressed`);
         onClick?.(event);
     };
 

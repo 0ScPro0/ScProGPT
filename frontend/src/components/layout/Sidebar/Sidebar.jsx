@@ -1,6 +1,6 @@
 import styles from "./Sidebar.module.css"
-import sidebar_icon from "../../../assets/images/sidebar/SidebarWhite.svg"
-import plus_icon from "../../../assets/images/sidebar/PlusBlack.svg"
+import sidebar_icon from "../../../assets/images/sidebar/sidebar.svg"
+//import plus_icon from "../../../assets/images/sidebar/plus.svg"
 import { Logo } from "../../ui/common/Logo"
 import { ImageButton } from "../../ui/common/Button"
 
@@ -13,8 +13,7 @@ export function Sidebar(){
                     <ImageButton 
                         size="45px"
                         src={sidebar_icon}
-                        width="26px"
-                        height="26px"
+                        img_size="26px"
                     />
                 </div>
             </div>

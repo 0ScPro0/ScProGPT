@@ -1,6 +1,26 @@
-.home {
-    display: flex;
-    flex-direction: column;
-    margin: 0;
-    position: relative;
+.container {
+    display: grid;
+    grid-template-areas: 
+        "sidebar header"
+        "sidebar main";
+    grid-template-columns: 300px 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+}
+
+.container > :first-child { /* Sidebar */
+    grid-area: sidebar;
+}
+
+.container > :nth-child(2) { /* Header */
+    grid-area: header;
+}
+
+.container > main {
+    grid-area: main;
+    padding: 20px;
+}
+
+.main {
+    background-color: var(--bg-color);
 }

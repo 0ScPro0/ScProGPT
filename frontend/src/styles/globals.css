@@ -1,5 +1,4 @@
-@import url("themes/dark_theme.css");
-@import url("themes/light_theme.css");
+@import url("themes.css");
 
 body {
     background-color: var(--bg-color);
