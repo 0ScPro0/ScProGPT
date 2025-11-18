@@ -1,13 +1,13 @@
 import { Home } from "./pages/Home";
-
-document.documentElement.setAttribute("data-theme", "dark")
+import { useThemeInit } from './hooks/useTheme';
 
 function App() {
-  return (
-    <>
-        <Home></Home>
-    </>
-  );
+    useThemeInit();
+    return (
+        <>
+            <Home></Home>
+        </>
+    );
 }
 
 export default App;

@@ -1,0 +1,8 @@
+.chat_name {
+    text-align: center;
+    padding: 16px;
+    width: 250px;
+    font-size: 24px;
+    font-weight: bold;
+    border-bottom: var(--border);
+}

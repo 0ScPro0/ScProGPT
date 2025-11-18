@@ -1,0 +1,32 @@
+/* Topbar.module.css */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    min-height: 60px; /* или нужная вам высота */
+    padding: 0 16px;
+}
+
+.left {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.center {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    border-bottom: var(--border);
+    padding: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
