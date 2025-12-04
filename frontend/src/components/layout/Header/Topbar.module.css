@@ -1,23 +1,24 @@
 /* Topbar.module.css */
 .topbar {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr minmax(auto, 300px) 1fr;
     align-items: center;
     width: 100%;
-    min-height: 60px; /* или нужная вам высота */
+    min-height: 60px;
     padding: 0 16px;
 }
 
 .left {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
 }
 
 .center {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
+    width: 100%;
 }
 
 .right {
@@ -26,7 +27,7 @@
     align-items: center;
     gap: 12px;
     border-bottom: var(--border);
-    padding: 2px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 2px 10px;
+    max-width: fit-content; /* Занимает только нужное место */
+    justify-self: end; /* Прижимает к правому краю */
 }
