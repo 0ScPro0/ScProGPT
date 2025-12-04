@@ -1,0 +1,8 @@
+.input_field {
+    margin: 0px;
+}
+
+.input_field .input_box {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}

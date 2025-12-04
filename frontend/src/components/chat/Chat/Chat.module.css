@@ -1,0 +1,17 @@
+/* Chat.module.css */
+.chat {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; 
+    position: relative;
+}
+
+.messages_wrapper {
+    margin: 0px;
+}
+
+.input_field_wrapper {
+    position: sticky;
+    bottom: 0;  
+    padding: 16px 0;
+}
