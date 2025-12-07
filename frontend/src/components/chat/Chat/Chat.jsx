@@ -8,11 +8,11 @@ export function Chat(){
         <div className={styles.chat}>
             <div className={styles.messages_wrapper}>
                 <MessageFromUser>
-                    Hello!
+                    Hello! How are you today?
                 </MessageFromUser>
 
                 <MessageFromAssistant>
-                    Hello! How can I help you?
+                    Hello, I'm fine! Maybe can I help you with something?
                     I can help you with any question you need!
                 </MessageFromAssistant>
             </div>

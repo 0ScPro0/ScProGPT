@@ -1,0 +1,16 @@
+/*MessageFromUser.module.css*/
+.message_from_assistant_wrapper {
+    display: flex;
+    justify-content: start;
+}
+.message_from_assistant {
+    display: flex;
+    justify-content: end;
+    
+    padding-bottom: 10px;
+
+    width: fit-content;
+    height: auto;
+
+
+}

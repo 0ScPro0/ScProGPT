@@ -1,4 +1,21 @@
+/*MessageFromUser.module.css*/
+.message_from_user_wrapper {
+    display: flex;
+    justify-content: end;
+}
 .message_from_user {
+    display: flex;
+    justify-content: end;
+    
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 0px;
+    padding-inline: 20px;
+    margin-bottom: 20px;
+
+    width: fit-content;
+    height: auto;
+
     background-color: #202020;
-    border-radius: 20px;    
+    border-radius: 20px;
 }
