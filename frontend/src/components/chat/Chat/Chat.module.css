@@ -2,7 +2,7 @@
 .chat {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
     width: auto;
     max-width: 1000px;
     margin: 0 auto;
@@ -19,6 +19,6 @@
 
 .input_field_wrapper {
     position: sticky;
-    bottom: 0;  
+    bottom: 0; 
     padding: 16px 0;
 }

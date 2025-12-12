@@ -3,6 +3,7 @@
     display: flex;
     justify-content: end;
 }
+
 .message_from_user {
     display: flex;
     justify-content: end;
@@ -14,8 +15,9 @@
     margin-bottom: 20px;
 
     width: fit-content;
+    max-width: 800px;
     height: auto;
 
-    background-color: #202020;
+    background-color: var(--user-message-bg-color);
     border-radius: 20px;
 }
