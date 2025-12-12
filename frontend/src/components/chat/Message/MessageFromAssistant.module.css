@@ -3,14 +3,13 @@
     display: flex;
     justify-content: start;
 }
+
 .message_from_assistant {
     display: flex;
     justify-content: end;
     
-    padding-bottom: 10px;
+    padding-bottom: 20px;
 
     width: fit-content;
     height: auto;
-
-
 }

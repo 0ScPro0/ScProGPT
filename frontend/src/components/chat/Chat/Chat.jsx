@@ -2,19 +2,29 @@ import styles from "./Chat.module.css"
 import { InputField } from "../InputField"
 import { MessageFromUser } from "../Message"
 import { MessageFromAssistant } from "../Message"
+import { MESSAGES } from "./mt"
 
 export function Chat(){
+    const messages = MESSAGES.map((item, index) => {
+        if (item.speaker === "User") {
+            return (
+                <MessageFromUser key={index}>
+                    {item.text}
+                </MessageFromUser>
+            )
+        } else {
+            return (
+                <MessageFromAssistant key={index}>
+                    {item.text}
+                </MessageFromAssistant>
+            )
+        }
+    });
+
     return (
         <div className={styles.chat}>
             <div className={styles.messages_wrapper}>
-                <MessageFromUser>
-                    Hello! How are you today?
-                </MessageFromUser>
-
-                <MessageFromAssistant>
-                    Hello, I'm fine! Maybe can I help you with something?
-                    I can help you with any question you need!
-                </MessageFromAssistant>
+                {messages}
             </div>
             <div className={styles.input_field_wrapper}>
                 <InputField />
