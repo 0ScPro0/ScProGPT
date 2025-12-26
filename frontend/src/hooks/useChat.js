@@ -1,41 +1,83 @@
 import { useState, useCallback } from 'react';
 
 export const useChat = () => {
-    // Messages
     const [messages, setMessages] = useState([]);
-    // Textarea input
     const [inputText, setInputText] = useState('');
+    const [isAssistantTyping, setIsAssistantTyping] = useState(false);
     
-    // Send message
     const sendMessage = useCallback(() => {
-        if (!inputText.trim()) return;
+        if (!inputText.trim() || isAssistantTyping) return;
         
-        console.log('Отправляем:', inputText);
-        
-        // Create message from user
+        // User message
         const userMessage = {
             id: Date.now(), 
             speaker: "user",
             text: inputText,
         };
         
-        // Add message to messages list
         setMessages(prev => [...prev, userMessage]);
-        
-        // Clear textarea input 
         setInputText('');
         
-        // Bot answer
-        setTimeout(() => {
-            const botMessage = {
-                id: Date.now() + 1,
-                speaker: "assistant",
-                text: 'Message handled, hello, user!',
-            };
-            setMessages(prev => [...prev, botMessage]);
-        }, 1000);
+        // Show indicator
+        setIsAssistantTyping(true);
+        const typingIndicatorId = Date.now();
         
-    }, [inputText]); // Func depend from inputText
+        const typingIndicator = {
+            id: typingIndicatorId,
+            speaker: "assistant",
+            text: "• • •",
+            isTypingIndicator: true,
+        };
+        
+        setMessages(prev => [...prev, typingIndicator]);
+        
+        // Timeout before answer
+        setTimeout(() => {
+            // Clear indicator
+            setMessages(prev => prev.filter(msg => msg.id !== typingIndicatorId));
+            
+            // Start type answer
+            const responseText = `Hello! My name is ScProGPT. I'm an AI assistant that can help you with any question you need`;
+            typeMessage(responseText);
+            
+        }, 800); // Timeout plug
+        
+    }, [inputText, isAssistantTyping]);
+    
+    const typeMessage = useCallback((text) => {
+        const messageId = Date.now();
+        let currentText = "";
+        let charIndex = 0;
+        
+        // Create empty message
+        const newMessage = {
+            id: messageId,
+            speaker: "assistant",
+            text: currentText,
+        };
+        
+        setMessages(prev => [...prev, newMessage]);
+        
+        // Type interval
+        const interval = setInterval(() => {
+            if (charIndex < text.length) {
+                currentText += text[charIndex];
+                charIndex++;
+                
+                // Update Message
+                setMessages(prev => prev.map(msg => 
+                    msg.id === messageId 
+                        ? { ...msg, text: currentText }
+                        : msg
+                ));
+            } else {
+                clearInterval(interval);
+                setIsAssistantTyping(false);
+            }
+        }, 5);
+        
+        return () => clearInterval(interval);
+    }, []);
 
     // Handle enter
     const handleKeyDown = useCallback((e) => {

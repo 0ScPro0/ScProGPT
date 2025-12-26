@@ -31,30 +31,47 @@ export function Chat(){
             {/* Message wrapper */}
             <div className={styles.messages_wrapper}>
                 {messages.map((message) => {
-                    if (message.speaker == "assistant") {
+                    if (message.speaker === "assistant") {
+                        if (message.isTypingIndicator) {
+                            return (
+                                <MessageFromAssistant key={message.id}>
+                                    <div className={styles.typing_indicator}>
+                                        <div className={styles.typing_dots}>
+                                            <span>•</span> <span>•</span> <span>•</span>
+                                        </div>
+                                    </div>
+                                </MessageFromAssistant>
+                            );
+                        }
+                        
+                        // Если сообщение еще печатается
+                        if (message.isTyping) {
+                            return (
+                                <MessageFromAssistant key={message.id}>
+                                    {message.text}
+                                    <span className={styles.typing_cursor} />
+                                </MessageFromAssistant>
+                            );
+                        }
+                        
+                        // Готовое сообщение
                         return (
                             <MessageFromAssistant key={message.id}>
                                 {message.text}
                             </MessageFromAssistant>
                         );
-                    } else if (message.speaker == "user") {
-                        console.log(message.text);
-                        return (
-                            <MessageFromUser key={message.id}>
-                                {message.text}
-                            </MessageFromUser>
-                        );
-                    } else {
-                        console.log(`Unknown speaker: ${message.id}`);
-                        return (
-                            <MessageFromUser key={message.id}>
-                                {`Unknown speaker\n\n${message.text}`}
-                            </MessageFromUser>
-                        )
-                    }
+                    } 
+                    
+                    // Сообщение пользователя
+                    return (
+                        <MessageFromUser key={message.id}>
+                            {message.text}
+                        </MessageFromUser>
+                    );
                 })}
                 <div ref={messagesEndRef} />
             </div>
+
             {/* Input Field wrapper */}
             <div className={styles.input_field_wrapper}>
                 <InputField 
