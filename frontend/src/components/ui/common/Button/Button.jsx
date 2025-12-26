@@ -1,9 +1,9 @@
 import styles from "./Button.module.css";
 
-export function Button({size, children, onClick, style, ...props}) {
+export function Button({name, size, children, onClick, style, ...props}) {
 
     const handleClick = (event) => {
-        console.log(`${styles.button} was pressed`);
+        console.log(`${name} was pressed`);
         onClick?.(event);
     };
 

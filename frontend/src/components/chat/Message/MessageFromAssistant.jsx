@@ -9,7 +9,6 @@ export function MessageFromAssistant({children}){
                     {children}
                 </Message>
             </div>
-
         </div>
     )
 }

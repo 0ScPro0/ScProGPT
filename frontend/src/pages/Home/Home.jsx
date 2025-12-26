@@ -5,7 +5,7 @@ import { Chat } from "../../components/chat/Chat"
 
 export function Home(){
     return(
-        <div className={styles.container}>
+        <div className={styles.home}>
             <Sidebar/>
             <Header/>
             <main className={styles.main}>

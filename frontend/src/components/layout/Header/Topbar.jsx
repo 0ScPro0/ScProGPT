@@ -22,16 +22,19 @@ export function Topbar({
                 <ChatName>{chatName}</ChatName>
             </div>
             <div className={styles.right}>
-                <ImageButton 
+                <ImageButton
+                    name="theme-button"
                     src={moon_icon} 
                     size={50} 
                     img_size={32}
                     onClick={toggleTheme}/>
                 <ImageButton 
+                    name="settings-button"
                     src={settings_icon} 
                     size={50} 
                     img_size={32}/>
                 <ImageButton 
+                    name="user-button"
                     src={user_icon} 
                     size={60} 
                     img_size={42}/>
