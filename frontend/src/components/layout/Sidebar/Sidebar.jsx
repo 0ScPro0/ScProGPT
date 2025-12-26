@@ -11,6 +11,7 @@ export function Sidebar(){
                 <div className={styles.top}>
                     <Logo/>
                     <ImageButton 
+                        name="sidebar-button"
                         size="45px"
                         src={sidebar_icon}
                         img_size="26px"

@@ -1,4 +1,4 @@
-.container {
+.home {
     display: grid;
     grid-template-areas: 
         "sidebar header"
@@ -8,15 +8,15 @@
     min-height: 100vh;
 }
 
-.container > :first-child { /* Sidebar */
+.home > :first-child { /* Sidebar */
     grid-area: sidebar;
 }
 
-.container > :nth-child(2) { /* Header */
+.home > :nth-child(2) { /* Header */
     grid-area: header;
 }
 
-.container > main {
+.home > main {
     grid-area: main;
     padding: 20px;
 }

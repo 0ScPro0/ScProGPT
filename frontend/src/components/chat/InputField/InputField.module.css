@@ -1,33 +1,51 @@
 /* InputField.module.css */
 .input_field_wrapper {
+    display: flex;
+    align-items: flex-start;
+    box-sizing: border-box;
+
     margin: 0px;
+    padding: 15px 20px;
+    gap: 15px;
     width: 100%;
+    min-height: 80px;
+
     border: var(--border);
     border-radius: 35px;
-    padding: 20px;
-    box-sizing: border-box;
     background-color: var(--bg-color);
-    position: relative;
-    overflow: hidden; /* Скрываем переполнение wrapper */
 }
 
 .input_field {
-
-    width: 100%;
-    min-height: 80px;
-    max-height: 480px; 
+    align-self: center; 
+    flex: 1; 
+    min-height: 40px; 
+    max-height: 450px; 
+    padding: 5px 0; 
     outline: none;
-    font-size: 20px;
+
     background-color: transparent;
     color: var(--text-color);
     border: none;
     resize: none;
+
+    font-size: 20px;
     font-family: inherit;
     line-height: 1.5;
-    
-    /* scrollbar */
+
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-color) transparent;
+
+}
+
+.send_button_wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-end;
+    
+    height: 50px;
+    flex-shrink: 0; 
+    margin-bottom: 5px; 
 }

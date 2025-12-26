@@ -1,16 +1,36 @@
 import { Button } from "./Button";
 
-export function ImageButton({src, size, img_size, children, ...props}) {
+// ImageButton.jsx
+export function ImageButton({ 
+    src, 
+    size, 
+    img_size,
+    img_width,
+    img_height,
+    children, 
+    img_style = {},
+    img_class_name = '', 
+    onClick,
+    ...props 
+}) {
+
+    const width = (img_size !== undefined ? img_size : img_width);
+    const height = (img_size !== undefined ? img_size : img_height);
+    
     return (
-        <Button size={size} {...props}>
+        <Button size={size} onClick={onClick} {...props}>
             <img 
                 src={src} 
-                width={img_size} 
-                height={img_size} 
-                alt="button icon"
-                style={{ display: 'block' }}
+                width={width} 
+                height={height} 
+                alt="ico"
+                style={{ 
+                    display: 'block',
+                    ...img_style  
+                }}
+                className={img_class_name}
             />
             {children}
         </Button>
-    )
+    );
 }
