@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from sqlalchemy import String, Integer, Float, Boolean, ForeignKey, DateTime, Index
+from sqlalchemy import String, Integer, Float, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -37,10 +37,3 @@ class Chat(Base):
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="chats")
     messages: Mapped["Message"] = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
-
-    __table_args__ = (
-        Index('ix_messages_chat_created', 'chat_id', 'created_at'),
-        Index('ix_messages_role', 'role'),
-        Index('ix_messages_tokens', 'total_tokens'),
-        Index('ix_messages_created_at', 'created_at'),
-    )

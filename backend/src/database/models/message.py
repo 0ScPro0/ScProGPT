@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from sqlalchemy import String, Integer, Numeric, BLOB, ForeignKey, Index
+from sqlalchemy import String, Integer, Numeric, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -25,3 +25,11 @@ class Message(Base):
     
     # Relationships
     chat: Mapped["Chat"] = relationship("Chat", back_populates="messages")
+
+    # Indexes
+    __table_args__ = (
+        Index('ix_messages_chat_created', 'chat_id', 'created_at'),
+        Index('ix_messages_role', 'role'),
+        Index('ix_messages_tokens', 'total_tokens'),
+        Index('ix_messages_created_at', 'created_at'),
+    )
