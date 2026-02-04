@@ -8,12 +8,8 @@ from database import database
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # startup
-    await database.startup()
     yield
-    
-    # shutdown
-    await database.dispose()
+
 
 app = FastAPI(title="AI Chat API", lifespan=lifespan)
 app.include_router(router)
