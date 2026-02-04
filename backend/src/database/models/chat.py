@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING
+from datetime import datetime
 from sqlalchemy import String, Integer, Float, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
 if TYPE_CHECKING:
-    from datetime import datetime
     from .user import User
     from .message import Message
 
@@ -32,7 +32,7 @@ class Chat(Base):
     
     # Soft delete
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
-    deleted_at: Mapped["datetime"] = mapped_column(DateTime, nullable=True)
+    deleted_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="chats")
