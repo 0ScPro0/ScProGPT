@@ -12,9 +12,10 @@ if TYPE_CHECKING:
 class Chat(Base):
     __tablename__ = "chats"
     
-    # Main
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    # User id to relationship
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+
+    # Title
     title: Mapped[str] = mapped_column(String, default="New Chat")
     
     # Metadata

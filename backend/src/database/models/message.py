@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 class Message(Base):
     __tablename__ = "messages"
     
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # Chat id to relationship
     chat_id: Mapped[int] = mapped_column(Integer, ForeignKey("chats.id"), nullable=False)
 
     # Content
