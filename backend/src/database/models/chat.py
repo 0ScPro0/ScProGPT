@@ -22,6 +22,7 @@ class Chat(Base):
     provider: Mapped[str] = mapped_column(String)  # openai, anthropic, gemini, openrouter
     
     # Settings
+    pinned: Mapped[bool] = mapped_column(Boolean, default=False)
     system_prompt: Mapped[str] = mapped_column(String, nullable=True)
     temperature: Mapped[float] = mapped_column(Float, default=0.7)
     max_tokens: Mapped[int] = mapped_column(Integer, default=2000)

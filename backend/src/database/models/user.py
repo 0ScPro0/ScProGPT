@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from sqlalchemy import String, Integer, Boolean, Numeric
+from sqlalchemy import String, Integer, Boolean, Numeric, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -19,6 +19,9 @@ class User(Base):
 
     # Permissions
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
+    
+    # Settings
+    settings: Mapped[dict] = mapped_column(JSON, default={})
     
     # Business 
     balance: Mapped[float] = mapped_column(Numeric(10, 2), default=0.00)

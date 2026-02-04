@@ -11,5 +11,5 @@ router.include_router(chat_router)
 router.include_router(message_router)
 
 @router.get("/")
-def read_root():
+def root():
     return {"message": "Welcome to ScProGPT API!"}
