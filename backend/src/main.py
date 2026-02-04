@@ -9,7 +9,6 @@ from api.v1.router import router
 async def lifespan(app: FastAPI):
     yield
 
-
 app = FastAPI(title="AI Chat API", lifespan=lifespan)
 app.include_router(router)
 
