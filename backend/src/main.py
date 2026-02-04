@@ -4,7 +4,6 @@ import uvicorn
 
 from core.config import settings
 from api.v1.router import router
-from database import database
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
