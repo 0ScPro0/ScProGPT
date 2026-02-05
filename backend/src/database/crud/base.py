@@ -1,10 +1,11 @@
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, Set, Type, TypeVar, Union
 from pydantic import BaseModel
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
 from sqlalchemy.sql.expression import func
 
+from src.utils.logger import logger, log_database_queries
 from database.models.base import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
@@ -15,8 +16,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     """Base class for CRUD operations"""
 
     def __init__(self, model: Type[ModelType]):
+        self._protected_fields: Set[str] = {"id", "created_at", "updated_at"}
         self.model = model
     
+    @log_database_queries
     async def get(
         self, 
         session: AsyncSession, 
@@ -29,6 +32,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         )
         return result.scalar_one_or_none()
     
+    @log_database_queries
     async def get_multy(
         self, 
         session: AsyncSession,
@@ -48,6 +52,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         result = await session.execute(query)
         return list(result.scalars().all())
 
+    @log_database_queries
     async def get_by_field(
         self,
         session: AsyncSession,
@@ -64,6 +69,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         )
         return result.scalar_one_or_none()
 
+    @log_database_queries
     async def get_by_field_multy(
         self, 
         session: AsyncSession, 
@@ -86,6 +92,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         )
         return list(result.scalars().all())
     
+    @log_database_queries
     async def create(
         self,
         session: AsyncSession,
@@ -105,6 +112,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await session.refresh(database_object)
         return database_object
 
+    @log_database_queries
     async def update(
         self,
         session: AsyncSession,
@@ -128,6 +136,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await session.refresh(database_object)
         return database_object
 
+    @log_database_queries
     async def update_by_field(
         self,
         session: AsyncSession,
@@ -158,6 +167,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await session.refresh(database_object)
         return database_object
 
+    @log_database_queries
     async def update_field(
         self,
         session: AsyncSession,
@@ -179,6 +189,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 f"Model {self.model.__name__} has no field '{field_name}'"
             )
         
+        # Check for protected fields
+        if field_name in self._protected_fields:
+            raise PermissionError(
+                f"Cannot change protected field: {field_name}"
+            )
+        
         # Update field
         setattr(object, field_name, field_value)
         
@@ -188,7 +204,50 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await session.refresh(object)
         
         return object
+    
+    @log_database_queries
+    async def update_fields(
+        self,
+        session: AsyncSession,
+        *,
+        object_id: Any,
+        fields: Dict[str, Any]
+    ) -> Optional[ModelType]:
+        """Update single field of an object"""
+        
+        # Get object
+        object = await self.get(session, object_id)
+        if not object:
+            return None
+        
+        # Check field exists
+        for name, value in fields.items():
+            if value is None:
+                logger.info(f"Field {name} is None, skip it")
+                continue
 
+            if not hasattr(object, name):
+                raise AttributeError(
+                    f"Model {self.model.__name__} has no field '{name}'"
+                )
+            
+            # Check for protected fields
+            if name in self._protected_fields:
+                raise PermissionError(
+                    f"Cannot change protected field: {name}"
+                )
+            
+            # Update field
+            setattr(object, name, value)
+        
+        # Save
+        session.add(object)
+        await session.commit()
+        await session.refresh(object)
+        
+        return object
+    
+    @log_database_queries
     async def remove_object_by_id(
         self, 
         session: AsyncSession, 
@@ -209,6 +268,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         
         return obj
     
+    @log_database_queries
     async def delete_object_by_id(self, session: AsyncSession, *, id: int) -> bool:
         """Удалить объект по ID (возвращает bool)"""
         try:
@@ -224,6 +284,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             await session.rollback()
             return False
 
+    @log_database_queries
     async def is_exists(
         self, 
         session: AsyncSession, 
@@ -237,6 +298,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         )
         return result.scalar_one_or_none() is not None
     
+    @log_database_queries
     async def records_count(
         self, 
         session: AsyncSession

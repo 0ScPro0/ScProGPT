@@ -3,8 +3,6 @@ from pydantic import BaseModel, Field, ConfigDict
 
 
 class BaseChat(BaseModel):
-    """Base chat schema with required fields for chat creation"""
-    
     title: str = Field(
         default="New chat",
         min_length=1,
@@ -27,20 +25,11 @@ class BaseChat(BaseModel):
     )
 
 
-class CreateChat(BaseChat):
-    """Schema for creating a new chat"""
-    
-    # Inherits all fields from BaseChat with their defaults
-    # All fields are optional with defaults, so empty payload creates a default chat
+class ChatCreate(BaseChat):
     pass
 
 
-class UpdateChat(BaseModel):
-    """
-    Schema for updating an existing chat.
-    ALL fields are optional - partial updates are supported.
-    """
-    
+class ChatUpdate(BaseModel):
     title: Optional[str] = Field(
         None,
         min_length=1,
@@ -105,11 +94,6 @@ class UpdateChat(BaseModel):
 
 
 class ChatResponse(BaseChat):
-    """
-    Schema for chat data returned in API responses.
-    Includes all chat metadata and timestamps.
-    """
-    
     id: int = Field(..., description="Unique chat identifier")
     user_id: int = Field(..., description="ID of chat owner")
     
