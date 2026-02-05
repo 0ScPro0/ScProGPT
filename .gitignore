@@ -70,6 +70,9 @@ backend/.idea/
 backend/*.swp
 backend/*.swo
 
+# Other
+backend/tests/ingoring_tests
+
 # ==================== FRONTEND (React) ====================
 
 # Dependencies
