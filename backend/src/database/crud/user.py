@@ -1,4 +1,4 @@
-from typing import Optional, List, Type, Any, Dict
+from typing import Optional, List, Type, Any, Dict, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 
@@ -34,6 +34,20 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             session=session,
             field_name="username",
             field_value=username
+        )
+        return user
+
+    async def create_user(
+        self,
+        session: AsyncSession,
+        *,
+        user_object: Union[UserCreate, Dict[str, Any]]
+    ) -> User:
+        """Create user"""
+
+        user = await self.create(
+            session=session,
+            object_in=user_object
         )
         return user
 
