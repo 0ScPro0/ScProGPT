@@ -1,16 +1,45 @@
-from pydantic import BaseModel
+from typing import Optional
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
+from datetime import datetime
 
-class BaseUser(BaseModel):
-    username: str
-    email: str
-    password_hash: str
+class UserBase(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr = Field(..., max_length=255)
 
-class CreateUser(BaseUser):
-    pass
+class UserCreate(UserBase):
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=100,
+    )
 
-class UpdateUser(BaseUser):
+class UserUpdate(BaseModel):
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    email: Optional[EmailStr] = Field(None, max_length=255)
+    is_active: Optional[bool] = None
+    is_superuser: Optional[bool] = None
+    settings: Optional[dict] = None
+    balance: Optional[float] = Field(None, ge=0)  # ge=0 - больше или равно 0
+    api_key: Optional[str] = Field(None, min_length=32, max_length=255)
+    
+    model_config = ConfigDict(extra="forbid")  # Запрещаем лишние поля
+
+class UserUpdatePassword(BaseModel):
+    current_password: str = Field(..., min_length=8, max_length=100)
+    new_password: str = Field(..., min_length=8, max_length=100)
+
+class UserResponse(UserBase):
+    id: int
     is_active: bool
     is_superuser: bool
-    settings: dict
-    balance: float
-    api_key: str
+    settings: dict = Field(default_factory=dict)
+    balance: float = Field(default=0.0, ge=0)
+    api_key: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True) 
+
+class UserPublic(BaseModel):
+    id: int
+    username: str

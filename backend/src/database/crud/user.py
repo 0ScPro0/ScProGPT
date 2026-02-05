@@ -2,11 +2,11 @@ from typing import Optional, List, Type, Any, Dict
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 
-from database.models.user import User 
 from crud.base import CRUDBase
-from schemas.user import CreateUser, UpdateUser
+from database.models.user import User 
+from src.schemas.user import UserCreate, UserUpdate
 
-class CRUDUser(CRUDBase[User, CreateUser, UpdateUser]):
+class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     """Class for user CRUD operations"""
 
     #==========================================GET USER==========================================
@@ -123,3 +123,16 @@ class CRUDUser(CRUDBase[User, CreateUser, UpdateUser]):
         return updated_user
     
     #==========================================DELETE USER==========================================
+    async def delete_user(
+        self,
+        session: AsyncSession,
+        *,
+        user_id: int
+    ) -> Optional[User]:
+        """Delete user and return deleted object"""
+
+        deleted_user = await self.remove_object_by_id(
+            session=session,
+            id=user_id
+        )
+        return deleted_user
