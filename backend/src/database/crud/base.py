@@ -17,7 +17,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def __init__(self, model: Type[ModelType]):
         self.model = model
     
-    #==========================================GET OBJECT==========================================
     async def get(
         self, 
         session: AsyncSession, 
@@ -55,7 +54,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         field_name: str,
         field_value: Any
     ) -> Optional[ModelType]:
-        """Get object by field (email, username etc.)"""
+        """Get object by field value (email, username etc.)"""
 
         if not hasattr(self.model, field_name):
             raise AttributeError(f"Model {self.model.__name__} has no field {field_name}")
@@ -64,8 +63,29 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             select(self.model).where(getattr(self.model, field_name) == field_value)
         )
         return result.scalar_one_or_none()
+
+    async def get_by_field_multy(
+        self, 
+        session: AsyncSession, 
+        *, 
+        field_name: str, 
+        field_value: Any,
+        skip: int = 0,
+        limit: int = 100
+    ) -> List[ModelType]:
+        """Get many objects by field value"""
+
+        if not hasattr(self.model, field_name):
+            raise AttributeError(f"Model {self.model.__name__} has no field {field_name}")
+        
+        result = await session.execute(
+            select(self.model)
+            .where(getattr(self.model, field_name) == field_value)
+            .offset(skip)
+            .limit(limit)
+        )
+        return list(result.scalars().all())
     
-    #==========================================CREATE OBJECT==========================================
     async def create(
         self,
         session: AsyncSession,
@@ -85,7 +105,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await session.refresh(database_object)
         return database_object
 
-    #==========================================UPDATE OBJECT==========================================
     async def update(
         self,
         session: AsyncSession,
@@ -109,7 +128,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await session.refresh(database_object)
         return database_object
 
-    async def update_object_by_field(
+    async def update_by_field(
         self,
         session: AsyncSession,
         *,
@@ -170,7 +189,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         
         return object
 
-    #==========================================DELETE OBJECT==========================================
     async def remove_object_by_id(
         self, 
         session: AsyncSession, 
@@ -206,7 +224,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             await session.rollback()
             return False
 
-    #==========================================USEFUL FUNCTIONS==========================================
     async def is_exists(
         self, 
         session: AsyncSession, 

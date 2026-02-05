@@ -9,7 +9,6 @@ from src.schemas.user import UserCreate, UserUpdate
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     """Class for user CRUD operations"""
 
-    #==========================================GET USER==========================================
     async def get_by_email(
         self,
         session: AsyncSession,
@@ -38,7 +37,6 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         )
         return user
 
-    #==========================================UPDATE USER==========================================
     async def update_api_key(
         self,
         session: AsyncSession,
@@ -122,7 +120,6 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         )
         return updated_user
     
-    #==========================================DELETE USER==========================================
     async def delete_user(
         self,
         session: AsyncSession,
