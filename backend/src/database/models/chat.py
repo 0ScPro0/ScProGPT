@@ -27,6 +27,9 @@ class Chat(Base):
     system_prompt: Mapped[str] = mapped_column(String, nullable=True)
     temperature: Mapped[float] = mapped_column(Float, default=0.7)
     max_tokens: Mapped[int] = mapped_column(Integer, default=2000)
+
+    # Position
+    position: Mapped[int] = mapped_column(Integer, default=1, autoincrement=True)
     
     # Statistics
     message_count: Mapped[int] = mapped_column(Integer, default=0)
