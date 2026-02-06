@@ -3,7 +3,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 
-BASE_DIR = Path(__file__).parent.parent.parent #config.core.src.backend
+BASE_DIR = Path(__file__).parent.parent.parent #backend.src..core.config
 
 class ServerConfig(BaseModel):
     host: str = "0.0.0.0"
@@ -25,8 +25,9 @@ class DatabaseConfig(BaseModel):
 class JWTConfig(BaseModel):
     secret_key: str = Field(default="")
     algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60 * 24
+    access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 30
+    environment: str = Field(default="development", description="Environment: development, staging, production")
 
 class Settings(BaseSettings):
     server: ServerConfig = ServerConfig()
@@ -39,5 +40,4 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
         case_sensitive = False
 
-# При создании объекта
 settings = Settings()
