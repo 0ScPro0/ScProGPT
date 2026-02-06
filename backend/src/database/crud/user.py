@@ -2,6 +2,7 @@ from typing import Optional, List, Type, Any, Dict, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 
+from src.utils.logger import logger, log_database_queries
 from crud.base import CRUDBase
 from database.models.user import User 
 from src.schemas.user import UserCreate, UserUpdate
@@ -147,3 +148,5 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             id=user_id
         )
         return deleted_user
+    
+user_crud = CRUDUser(User)

@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 
+from src.utils.logger import logger, log_database_queries
 from crud.base import CRUDBase
 from database.models.message import Message
 from src.schemas.message import MessageCreate, MessageUpdate
@@ -45,6 +46,7 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         )
         return messages
     
+    @log_database_queries
     async def get_message_with_chat(
         self,
         session: AsyncSession,
@@ -77,6 +79,7 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         )
         return message
     
+    @log_database_queries
     async def update_message_tokens(
         self,
         session: AsyncSession,
