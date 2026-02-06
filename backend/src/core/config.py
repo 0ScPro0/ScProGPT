@@ -3,7 +3,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 
-BASE_DIR = Path(__file__).parent.parent.parent #backend.src..core.config
+BASE_DIR = Path(__file__).parent.parent.parent #backend.src.core.config
 
 class ServerConfig(BaseModel):
     host: str = "0.0.0.0"
