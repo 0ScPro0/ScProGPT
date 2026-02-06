@@ -6,9 +6,9 @@ from pydantic_settings import BaseSettings
 BASE_DIR = Path(__file__).parent.parent.parent #backend.src.core.config
 
 class ServerConfig(BaseModel):
-    host: str = "0.0.0.0"
-    port: int = 8000
-    reload: bool = False
+    host: str = Field(default="0.0.0.0")
+    port: int = Field(default=8000)
+    reload: bool = Field(default=False)
     cors_origins: list[str] = [
         "http://localhost:8000",
         "http://0.0.0.0:8000",
@@ -16,17 +16,17 @@ class ServerConfig(BaseModel):
 
 class DatabaseConfig(BaseModel):
     url: str = Field(default="")
-    echo: bool = False
-    echo_pool: bool = False
-    pool_size: int = 20
-    max_overflow: int = 40
-    pool_pre_ping: bool = True
+    echo: bool = Field(default=False)
+    echo_pool: bool = Field(default=False)
+    pool_size: int = Field(default=5)
+    max_overflow: int = Field(default=10)
+    pool_pre_ping: bool = Field(default=True)
 
 class JWTConfig(BaseModel):
     secret_key: str = Field(default="")
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
-    refresh_token_expire_days: int = 30
+    algorithm: str = Field(default="HS256")
+    access_token_expire_minutes: int = Field(default=30)
+    refresh_token_expire_days: int = Field(default=30)
     environment: str = Field(default="development", description="Environment: development, staging, production")
 
 class Settings(BaseSettings):
