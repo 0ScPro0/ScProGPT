@@ -211,7 +211,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         # Check field exists
         for name, value in fields.items():
             if value is None:
-                logger.info(f"Field {name} is None, skip it")
+                logger.warning(f"Field {name} is None, skip it")
                 continue
 
             if not hasattr(object, name):
