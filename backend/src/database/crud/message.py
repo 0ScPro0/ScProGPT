@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 
 from src.utils.logger import logger, log_database_queries
-from crud.base import CRUDBase
+from database.crud.base import CRUDBase
 from database.models.message import Message
 from src.schemas.message import MessageCreate, MessageUpdate
 

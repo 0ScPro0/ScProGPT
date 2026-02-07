@@ -42,6 +42,9 @@ class DateConfig(BaseModel):
     date_format: str = "%Y-%m-%d"
     utc: timezone = timezone.utc
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 class Settings(BaseSettings):
     server: ServerConfig = Field(default_factory=ServerConfig)

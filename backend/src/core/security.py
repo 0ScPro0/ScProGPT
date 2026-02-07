@@ -10,7 +10,7 @@ from fastapi.security import HTTPBearer, OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
-from database import database, user_crud, User
+from src.database import database, user_crud, User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -127,7 +127,9 @@ def decode_token(token: str) -> Optional[dict]:
     """
     try:
         payload = jwt.decode(
-            token, settings.security.secret_key, algorithm=[settings.security.algorithm]
+            token,
+            settings.security.secret_key,
+            algorithms=[settings.security.algorithm],
         )
         return payload
     except ExpiredSignatureError:

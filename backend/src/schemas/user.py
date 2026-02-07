@@ -24,6 +24,8 @@ class UserUpdate(BaseModel):
     settings: Optional[dict] = None
     balance: Optional[float] = Field(None, ge=0)  # ge=0 - больше или равно 0
     api_key: Optional[str] = Field(None, min_length=32, max_length=255)
+    refresh_token: Optional[str] = Field(None, max_length=512)
+    refresh_token_expires_at: Optional[datetime] = None
 
     model_config = ConfigDict(extra="forbid")  # Запрещаем лишние поля
 
@@ -40,6 +42,8 @@ class UserResponse(UserBase):
     settings: dict = Field(default_factory=dict)
     balance: float = Field(default=0.0, ge=0)
     api_key: Optional[str] = None
+    refresh_token: Optional[str] = None
+    refresh_token_expires_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 

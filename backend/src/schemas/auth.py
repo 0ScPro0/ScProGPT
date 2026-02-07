@@ -8,8 +8,19 @@ from src.schemas.user import UserCreate
 
 class Token(BaseModel):
     access_token: str
-    token_type: str = "jwt"
-    expires_in: Optional[int] = None
+    refresh_token: str
+    token_type: str = "bearer"
+    access_token_expires_in: int
+    refresh_token_expires_in: int
+
+
+class TokenRefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class TokenRefreshResponse(BaseModel):
+    access_token: str
+    access_token_expires_in: int
 
 
 class SignInRequest(BaseModel):
@@ -23,5 +34,7 @@ class SignUpRequest(UserCreate):
 
 class SignInResponse(BaseModel):
     access_token: str
-    expiration: datetime
+    refresh_token: str
+    access_token_expires_in: int
+    refresh_token_expires_in: int
     user_info: User

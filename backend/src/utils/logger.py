@@ -5,6 +5,9 @@ from datetime import datetime
 from typing import Callable, Any
 import inspect
 import sys
+from pathlib import Path
+
+log_path = Path(__file__).parent.parent.parent / "logs" / "app.log"
 
 # Configure the root logger
 logging.basicConfig(
@@ -12,7 +15,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(sys.stdout),  # To console
-        logging.FileHandler("backend/logs/app.log"),  # To file
+        logging.FileHandler(log_path),  # To file
     ],
 )
 

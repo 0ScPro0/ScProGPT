@@ -2,9 +2,10 @@ from typing import Optional, List, Type, Any, Dict, Union
 from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
+from datetime import datetime
 
 from src.utils.logger import logger, log_database_queries
-from crud.base import CRUDBase
+from database.crud.base import CRUDBase
 from database.models.user import User
 from src.schemas.user import UserCreate, UserUpdate
 
@@ -127,6 +128,56 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             object_id=user_id,
             field_name="settings",
             field_value=settings,
+        )
+        return updated_user
+
+    async def update_refresh_token(
+        self,
+        session: AsyncSession,
+        *,
+        user_id: int,
+        refresh_token: str,
+        expires_at: datetime,
+    ) -> Optional[User]:
+        """
+        Update user refresh token and its expiration time
+
+        Args:
+            session: Database session
+            user_id: int
+            refresh_token: str
+            expires_at: datetime
+
+        Returns:
+            Updated user object or None if not found
+        """
+        updated_user = await self.update_fields(
+            session=session,
+            object_id=user_id,
+            fields={
+                "refresh_token": refresh_token,
+                "refresh_token_expires_at": expires_at,
+            },
+        )
+        return updated_user
+
+    async def clear_refresh_token(
+        self, session: AsyncSession, *, user_id: int
+    ) -> Optional[User]:
+        """
+        Clear user refresh token (set to None)
+
+        Args:
+            session: Database session
+            user_id: int
+
+        Returns:
+            Updated user object or None if not found
+        """
+        updated_user = await self.update_fields(
+            session=session,
+            object_id=user_id,
+            fields={"refresh_token": None, "refresh_token_expires_at": None},
         )
         return updated_user
 
