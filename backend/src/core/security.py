@@ -107,8 +107,11 @@ async def get_current_user(
 ) -> Optional[User]:
     """
     Get user from JWT token
+
     Args:
         token: JWT token
+        session: Database session
+
     Returns:
         User object or None if invalid/expired
     """
