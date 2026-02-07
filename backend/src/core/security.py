@@ -81,6 +81,43 @@ def create_access_token(
     return token
 
 
+def create_refresh_token(
+    subject: dict, expires_delta: Optional[timedelta] = None
+) -> str:
+    """
+    Create JWT refresh token
+
+    Args:
+        subject: Data to include in token (usually {"sub": user_id})
+        expires_delta: Optional custom expiration time
+
+    Returns:
+        JWT token string
+    """
+    # Set expiration
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(
+            days=settings.security.refresh_token_expire_days
+        )
+
+    # Create payload
+    payload = {
+        "exp": expire,  # expiration time
+        "iat": datetime.now(timezone.utc),  # issued at
+        "type": "refresh",  # token type
+        **subject,
+    }
+
+    # Encode token
+    token = jwt.encode(
+        payload, settings.security.secret_key, algorithm=settings.security.algorithm
+    )
+
+    return token
+
+
 def decode_token(token: str) -> Optional[dict]:
     """
     Decode and verify JWT token
