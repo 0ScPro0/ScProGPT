@@ -1,4 +1,5 @@
 from typing import Optional, List, Type, Any, Dict, Union
+from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 
@@ -11,13 +12,15 @@ from src.schemas.user import UserCreate, UserUpdate
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     """Class for user CRUD operations"""
 
-    async def get_by_email(self, session: AsyncSession, email: str) -> Optional[User]:
+    async def get_by_email(
+        self, session: AsyncSession, email: EmailStr
+    ) -> Optional[User]:
         """
         Get user by email
 
         Args:
             session: Database session
-            email: str
+            email: EmailStr
 
         Returns:
             User object or None if not found
@@ -180,7 +183,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         Returns:
             Deleted user object or None if not found
         """
-        deleted_user = await self.remove_object_by_id(session=session, id=user_id)
+        deleted_user = await self.remove(session=session, id=user_id)
         return deleted_user
 
     async def is_active(self, session: AsyncSession, *, user_id: int) -> bool:

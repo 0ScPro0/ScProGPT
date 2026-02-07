@@ -152,7 +152,7 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         Returns:
             Message object or None if message not found
         """
-        deleted_message = await self.remove_object_by_id(session=session, id=message_id)
+        deleted_message = await self.remove(session=session, id=message_id)
         return deleted_message
 
 

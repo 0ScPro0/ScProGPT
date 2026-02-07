@@ -261,5 +261,25 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
         )
         return updated_chat
 
+    async def delete_chat(
+        self, session: AsyncSession, *, chat_id: int
+    ) -> Optional[Chat]:
+        """
+        Delete chat
+
+        Args:
+            session: Database session
+            chat_id: int
+
+        Returns:
+            Chat object or None if chat not found
+        """
+        chat = await self.get_chat(session=session, chat_id=chat_id)
+        if not chat:
+            return None
+
+        deleted_chat = await self.delete(session=session, object_id=chat_id)
+        return deleted_chat
+
 
 chat_crud = CRUDChat(Chat)

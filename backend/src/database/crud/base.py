@@ -318,9 +318,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return object
 
     @log_database_queries
-    async def remove_object_by_id(
-        self, session: AsyncSession, *, id: int
-    ) -> Optional[ModelType]:
+    async def remove(self, session: AsyncSession, *, id: int) -> Optional[ModelType]:
         """
         Delete object by id
 
@@ -342,7 +340,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return obj
 
     @log_database_queries
-    async def delete_object_by_id(self, session: AsyncSession, *, id: int) -> bool:
+    async def delete(self, session: AsyncSession, *, id: int) -> bool:
         """
         Delete object by id
 
