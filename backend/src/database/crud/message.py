@@ -20,7 +20,6 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         message_id: int,
     ) -> Optional[Message]:
         """Get message by ID"""
-
         message = await self.get(session=session, id=message_id)
         return message
 
@@ -28,7 +27,6 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         self, session: AsyncSession, *, chat_id: int, skip: int = 0, limit: int = 100
     ) -> List[Message]:
         """Get messages for a specific chat"""
-
         messages = await self.get_by_field_multy(
             session=session,
             field_name="chat_id",
@@ -62,7 +60,6 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         message_object: Union[MessageCreate, Dict[str, Any]],
     ) -> Message:
         """Create a new message"""
-
         message = await self.create(session=session, object_in=message_object)
         return message
 
@@ -78,7 +75,6 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         cost: float,
     ) -> Optional[Message]:
         """Update token usage and cost for a message"""
-
         message = await self.get_message(session=session, message_id=message_id)
         if not message:
             return None
@@ -99,7 +95,6 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         self, session: AsyncSession, *, message_id: int
     ) -> Optional[Message]:
         """Delete message and return deleted object"""
-
         deleted_message = await self.remove_object_by_id(session=session, id=message_id)
         return deleted_message
 

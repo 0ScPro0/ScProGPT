@@ -12,8 +12,16 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     """Class for user CRUD operations"""
 
     async def get_by_email(self, session: AsyncSession, email: str) -> Optional[User]:
-        """Get user by email"""
+        """
+        Get user by email
 
+        Args:
+            session: Database session
+            email: str
+
+        Returns:
+            User object or None if not found
+        """
         user = await self.get_by_field(
             session=session, field_name="email", field_value=email
         )
@@ -22,8 +30,16 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def get_by_username(
         self, session: AsyncSession, username: str
     ) -> Optional[User]:
-        """Get user by username"""
+        """
+        Get user by username
 
+        Args:
+            session: Database session
+            username: str
+
+        Returns:
+            User object or None if not found
+        """
         user = await self.get_by_field(
             session=session, field_name="username", field_value=username
         )
@@ -32,16 +48,33 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def create_user(
         self, session: AsyncSession, *, user_object: Union[UserCreate, Dict[str, Any]]
     ) -> User:
-        """Create user"""
+        """
+        Create user
 
+        Args:
+            session: Database session
+            user_object: UserCreate object or dict
+
+        Returns:
+            Created user object
+        """
         user = await self.create(session=session, object_in=user_object)
         return user
 
     async def update_api_key(
         self, session: AsyncSession, *, user_id: int, api_key: str
     ) -> Optional[User]:
-        """Update user api key"""
+        """
+        Update user api key
 
+        Args:
+            session: Database session
+            user_id: int
+            api_key: str
+
+        Returns:
+           Updated user object or None if not found
+        """
         updated_user = await self.update_field(
             session=session,
             object_id=user_id,
@@ -53,8 +86,17 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def update_password(
         self, session: AsyncSession, *, user_id: int, password_hash: str
     ) -> Optional[User]:
-        """Update user password"""
+        """
+        Update user password
 
+        Args:
+            session: Database session
+            user_id: int
+            password_hash: str
+
+        Returns:
+            Updated user object or None if not found
+        """
         updated_user = await self.update_field(
             session=session,
             object_id=user_id,
@@ -66,8 +108,17 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def update_settings(
         self, session: AsyncSession, *, user_id: int, settings: Dict[str, Any]
     ) -> Optional[User]:
-        """Update user password"""
+        """
+        Update user password
 
+        Args:
+            session: Database session
+            user_id: int
+            settings: Dict[str, Any]
+
+        Returns:
+            Updated user object or None if not found
+        """
         updated_user = await self.update_field(
             session=session,
             object_id=user_id,
@@ -77,8 +128,16 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return updated_user
 
     async def activate(self, session: AsyncSession, *, user_id: int) -> Optional[User]:
-        """Activate user"""
+        """
+        Activate user
 
+        Args:
+            session: Database session
+            user_id: int
+
+        Returns:
+            Activated user object or None if not found
+        """
         updated_user = await self.update_field(
             session=session, object_id=user_id, field_name="is_active", field_value=True
         )
@@ -90,8 +149,16 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         *,
         user_id: int,
     ) -> Optional[User]:
-        """Deactivate user"""
+        """
+        Activate user
 
+        Args:
+            session: Database session
+            user_id: int
+
+        Returns:
+            Deactivated user object or None if not found
+        """
         updated_user = await self.update_field(
             session=session,
             object_id=user_id,
@@ -103,10 +170,32 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def delete_user(
         self, session: AsyncSession, *, user_id: int
     ) -> Optional[User]:
-        """Delete user and return deleted object"""
+        """
+        Delete user
 
+        Args:
+            session: Database session
+            user_id: int
+
+        Returns:
+            Deleted user object or None if not found
+        """
         deleted_user = await self.remove_object_by_id(session=session, id=user_id)
         return deleted_user
+
+    async def is_active(self, session: AsyncSession, *, user_id: int) -> bool:
+        """
+        Check if user is active
+
+        Args:
+            session: Database session
+            user_id: int
+
+        Returns:
+            bool: True if user is active, False otherwise
+        """
+        user: User = await self.get(session=session, id=user_id)
+        return user.is_active
 
 
 user_crud = CRUDUser(User)

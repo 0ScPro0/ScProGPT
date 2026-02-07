@@ -22,8 +22,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     @log_database_queries
     async def get(self, session: AsyncSession, id: Any) -> Optional[ModelType]:
-        """Get object by id"""
+        """
+        Get object by id
 
+        Args:
+            session: Database session
+            id: Object id
+
+        Returns:
+            Object or None if not found
+        """
         result = await session.execute(select(self.model).where(self.model.id == id))
         return result.scalar_one_or_none()
 
@@ -36,8 +44,18 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         limit: int = 100,
         order_by: Optional[Any],
     ) -> List[ModelType]:
-        """Get object list with pagination"""
+        """
+        Get object list with pagination
 
+        Args:
+            session: Database session
+            skip: Skip number of objects
+            limit: Limit number of objects
+            order_by: Order by field
+
+        Returns:
+            List of objects
+        """
         query = select(self.model)
 
         if order_by is not None:
@@ -51,8 +69,17 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def get_by_field(
         self, session: AsyncSession, field_name: str, field_value: Any
     ) -> Optional[ModelType]:
-        """Get object by field value (email, username etc.)"""
+        """
+        Get object by field value (email, username etc.)
 
+        Args:
+            session: Database session
+            field_name: Field name
+            field_value: Field value
+
+        Returns:
+            Object or None if not found
+        """
         if not hasattr(self.model, field_name):
             raise AttributeError(
                 f"Model {self.model.__name__} has no field {field_name}"
@@ -73,8 +100,19 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         skip: int = 0,
         limit: int = 100,
     ) -> List[ModelType]:
-        """Get many objects by field value"""
+        """
+        Get many objects by field value
 
+        Args:
+            session: Database session
+            field_name: Field name
+            field_value: Field value
+            skip: Skip number of objects
+            limit: Limit number of objects
+
+        Returns:
+            List of objects
+        """
         if not hasattr(self.model, field_name):
             raise AttributeError(
                 f"Model {self.model.__name__} has no field {field_name}"
@@ -95,8 +133,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         *,
         object_in: Union[CreateSchemaType, Dict[str, Any]],
     ) -> ModelType:
-        """Create object"""
+        """
+        Create object
 
+        Args:
+            session: Database session
+            object_in: Object data
+
+        Returns:
+            Created object
+        """
         if isinstance(object_in, dict):
             create_data = object_in
         else:
@@ -116,8 +162,17 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         database_object: ModelType,
         object_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
-        """Update object"""
+        """
+        Update object
 
+        Args:
+            session: Database session
+            database_object: Object to update
+            object_in: Object data
+
+        Returns:
+            Updated object
+        """
         if isinstance(object_in, dict):
             update_data = object_in
         else:
@@ -141,8 +196,18 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         field_value: Any,
         update_data: Dict[str, Any],
     ) -> Optional[ModelType]:
-        """Update object by field"""
+        """
+        Update object by field
 
+        Args:
+            session: Database session
+            field_name: Field name
+            field_value: Field value
+            update_data: Data to update
+
+        Returns:
+            Updated object or None if not found
+        """
         # Get object
         database_object = await self.get_by_field(
             session=session, field_name=field_name, field_value=field_value
@@ -170,8 +235,18 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         field_name: str,
         field_value: Any,
     ) -> Optional[ModelType]:
-        """Update single field of an object"""
+        """
+        Update single field of an object
 
+        Args:
+            session: Database session
+            object_id: Object id
+            field_name: Field name
+            field_value: Field value
+
+        Returns:
+            Updated object or None if not found
+        """
         # Get object
         object = await self.get(session, object_id)
         if not object:
@@ -201,8 +276,17 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def update_fields(
         self, session: AsyncSession, *, object_id: Any, fields: Dict[str, Any]
     ) -> Optional[ModelType]:
-        """Update single field of an object"""
+        """
+        Update single field of an object
 
+        Args:
+            session: Database session
+            object_id: Object id
+            fields: Dict[str, Any]
+
+        Returns:
+            Updated object or None if not found
+        """
         # Get object
         object = await self.get(session, object_id)
         if not object:
@@ -237,8 +321,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def remove_object_by_id(
         self, session: AsyncSession, *, id: int
     ) -> Optional[ModelType]:
-        """Delete object by id"""
+        """
+        Delete object by id
 
+        Args:
+            session: Database session
+            id: int
+
+        Returns:
+            Deleted object or None if not found
+        """
         result = await session.execute(select(self.model).where(self.model.id == id))
 
         obj = result.scalar_one_or_none()
@@ -251,7 +343,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     @log_database_queries
     async def delete_object_by_id(self, session: AsyncSession, *, id: int) -> bool:
-        """Удалить объект по ID (возвращает bool)"""
+        """
+        Delete object by id
+
+        Args:
+            id: int
+        Returns:
+            bool: True if object was deleted, False otherwise
+        """
         try:
             result = await session.execute(
                 select(self.model).where(self.model.id == id)
@@ -267,14 +366,29 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     @log_database_queries
     async def is_exists(self, session: AsyncSession, *, id: int) -> bool:
-        """Check object exists"""
+        """
+        Check object exists
 
+        Args:
+            session: Database session
+            id: int
+
+        Returns:
+            bool: True if object exists, False otherwise
+        """
         result = await session.execute(select(self.model).where(self.model.id == id))
         return result.scalar_one_or_none() is not None
 
     @log_database_queries
     async def records_count(self, session: AsyncSession) -> int:
-        """Get records count"""
+        """
+        Get records count
 
+        Args:
+            session: Database session
+
+        Returns:
+            int: Records count
+        """
         result = await session.execute(select(func.count()).select_from(self.model))
         return result.scalar_one()

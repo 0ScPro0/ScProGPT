@@ -19,8 +19,16 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
         *,
         chat_id: int,
     ) -> Optional[Chat]:
-        """Get chat"""
+        """
+        Get chat by id
 
+        Args:
+            session: Database session
+            chat_id: int
+
+        Returns:
+            Chat object or None if chat not found
+        """
         chat = await self.get(session=session, id=chat_id)
         return chat
 
@@ -33,8 +41,19 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
         skip: int = 0,
         limit: int = 100,
     ) -> List[Chat]:
-        """Get user's chats"""
+        """
+        Get user's chats
 
+        Args:
+            session: Database session
+            user_id: int
+            pinned_only: bool
+            skip: int
+            limit: int
+
+        Returns:
+            List of Chat objects
+        """
         chats = await self.get_by_field_multy(
             session=session,
             field_name="user_id",
@@ -42,6 +61,10 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
             skip=skip,
             limit=limit,
         )
+
+        if pinned_only:
+            chats = [chat for chat in chats if chat.pinned]
+
         return chats
 
     @log_database_queries
@@ -49,8 +72,15 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
         self, session: AsyncSession, chat_id: int, user_id: Optional[int] = None
     ) -> Optional[Chat]:
         """
-        Pure CRUD method: Get chat with eager-loaded messages.
-        Returns SQLAlchemy Chat object or None.
+        Get chat with eager-loaded messages
+
+        Args:
+            session: Database session
+            chat_id: int
+            user_id: Optional[int]
+
+        Returns:
+            Chat object or None if chat not found
         """
         query = (
             select(Chat).where(Chat.id == chat_id).options(selectinload(Chat.messages))
@@ -65,8 +95,16 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
     async def create_chat(
         self, session: AsyncSession, *, chat_object: Union[ChatCreate, Dict[str, Any]]
     ) -> Chat:
-        """Create chat"""
+        """
+        Create chat
 
+        Args:
+            session: Database session
+            chat_object: Union[ChatCreate, Dict[str, Any]]
+
+        Returns:
+            Chat object
+        """
         chat = await self.create(session=session, object_in=chat_object)
         return chat
 
@@ -76,8 +114,16 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
         *,
         chat_id: int,
     ) -> Optional[Chat]:
-        """Pin chat"""
+        """
+        Pin chat
 
+        Args:
+            session: Database session
+            chat_id: int
+
+        Returns:
+            Chat object or None if chat not found
+        """
         chat = await self.get_chat(session=session, chat_id=chat_id)
         if not chat:
             return None
@@ -90,8 +136,17 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
     async def unpin_chat(
         self, session: AsyncSession, *, chat_id: int, user_id: int
     ) -> Optional[Chat]:
-        """Unpin chat"""
+        """
+        Unpin chat
 
+        Args:
+            session: Database session
+            chat_id: int
+            user_id: int
+
+        Returns:
+            Chat object or None if chat not found
+        """
         chat = await self.get_chat(session=session, chat_id=chat_id)
         if not chat:
             return None
@@ -104,8 +159,17 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
     async def update_chat_position(
         self, session: AsyncSession, *, chat_id: int, position: int
     ) -> Optional[Chat]:
-        """Update chat position in sidebar"""
+        """
+        Update chat position in sidebar
 
+        Args:
+            session: Database session
+            chat_id: int
+            position: int
+
+        Returns:
+            Chat object or None if chat not found
+        """
         chat = await self.get_chat(session=session, chat_id=chat_id)
         if not chat:
             return None
@@ -121,7 +185,17 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
     async def update_chat_model(
         self, session: AsyncSession, *, chat_id: int, model: str
     ) -> Optional[Chat]:
-        """Update ai model for chat"""
+        """
+        Update ai model for chat
+
+        Args:
+            session: Database session
+            chat_id: int
+            model: str
+
+        Returns:
+            Chat object or None if chat not found
+        """
 
         chat = await self.get_chat(session=session, chat_id=chat_id)
         if not chat:
@@ -135,7 +209,18 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
     async def update_chat_provider_and_model(
         self, session: AsyncSession, *, chat_id: int, provider: str, model: str
     ) -> Optional[Chat]:
-        """Update ai provider and model for chat"""
+        """
+        Update ai provider and model for chat
+
+        Args:
+            session: Database session
+            chat_id: int
+            provider: str
+            model: str
+
+        Returns:
+            Chat object or None if chat not found
+        """
 
         chat = await self.get_chat(session=session, chat_id=chat_id)
         if not chat:
@@ -151,7 +236,18 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
     async def update_system_prompt(
         self, session: AsyncSession, *, chat_id: int, user_id: int, prompt: str
     ) -> Optional[Chat]:
-        """Update system prompt for chat"""
+        """
+        Update system prompt for chat
+
+        Args:
+            session: Database session
+            chat_id: int
+            user_id: int
+            prompt: str
+
+        Returns:
+            Chat object or None if chat not found
+        """
 
         chat = await self.get_chat(session=session, chat_id=chat_id)
         if not chat:
