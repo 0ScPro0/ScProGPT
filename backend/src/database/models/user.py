@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
-from sqlalchemy import String, Integer, Boolean, Numeric, JSON
+from sqlalchemy import String, Integer, Boolean, Numeric, JSON, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime
 
 from .base import Base
 
@@ -26,6 +27,10 @@ class User(Base):
     # Business
     balance: Mapped[float] = mapped_column(Numeric(10, 2), default=0.00)
     api_key: Mapped[str] = mapped_column(String, unique=True, index=True)
+
+    # Tokens
+    refresh_token: Mapped[str] = mapped_column(String(512), nullable=True)
+    refresh_token_expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     chats: Mapped[list["Chat"]] = relationship(
         "Chat", back_populates="users", cascade="all, delete-orphan"
