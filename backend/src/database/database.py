@@ -8,6 +8,7 @@ from database.models.user import User
 from database.models.chat import Chat
 from database.models.message import Message
 
+
 class Database:
     def __init__(
         self,
@@ -16,7 +17,7 @@ class Database:
         echo_pool: bool = False,
         pool_size: int = 5,
         max_overflow: int = 10,
-        pool_pre_ping: bool = True
+        pool_pre_ping: bool = True,
     ):
         self.engine = create_async_engine(
             url=url,
@@ -24,14 +25,11 @@ class Database:
             echo_pool=echo_pool,
             pool_size=pool_size,
             max_overflow=max_overflow,
-            pool_pre_ping=pool_pre_ping
+            pool_pre_ping=pool_pre_ping,
         )
 
         self.session_factory = async_sessionmaker(
-            bind=self.engine,
-            autoflush=False,
-            autocommit=False,
-            expire_on_commit=False
+            bind=self.engine, autoflush=False, autocommit=False, expire_on_commit=False
         )
 
     async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
@@ -46,7 +44,8 @@ class Database:
 
     async def dispose(self):
         """Dispose database"""
-        await self.engine.dispose() 
+        await self.engine.dispose()
+
 
 database = Database(
     url=settings.database.url,
@@ -54,5 +53,5 @@ database = Database(
     echo_pool=settings.database.echo_pool,
     pool_size=settings.database.pool_size,
     max_overflow=settings.database.max_overflow,
-    pool_pre_ping=settings.database.pool_pre_ping
+    pool_pre_ping=settings.database.pool_pre_ping,
 )

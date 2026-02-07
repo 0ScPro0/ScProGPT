@@ -2,8 +2,10 @@ from typing import Optional
 from pathlib import Path
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
+from datetime import timezone
 
-BASE_DIR = Path(__file__).parent.parent.parent #backend.src.core.config
+BASE_DIR = Path(__file__).parent.parent.parent  # backend.src.core.config
+
 
 class ServerConfig(BaseModel):
     host: str = Field(default="0.0.0.0")
@@ -14,6 +16,7 @@ class ServerConfig(BaseModel):
         "http://0.0.0.0:8000",
     ]
 
+
 class DatabaseConfig(BaseModel):
     url: str = Field(default="")
     echo: bool = Field(default=False)
@@ -22,22 +25,35 @@ class DatabaseConfig(BaseModel):
     max_overflow: int = Field(default=10)
     pool_pre_ping: bool = Field(default=True)
 
-class JWTConfig(BaseModel):
+
+class SecurityConfig(BaseModel):
     secret_key: str = Field(default="")
     algorithm: str = Field(default="HS256")
     access_token_expire_minutes: int = Field(default=30)
     refresh_token_expire_days: int = Field(default=30)
-    environment: str = Field(default="development", description="Environment: development, staging, production")
+    environment: str = Field(
+        default="development",
+        description="Environment: development, staging, production",
+    )
+
+
+class DateConfig(BaseModel):
+    datetime_format: str = "%Y-%m-%dT%H:%M:%S"
+    date_format: str = "%Y-%m-%d"
+    utc: timezone = timezone.utc
+
 
 class Settings(BaseSettings):
-    server: ServerConfig = ServerConfig()
+    server: ServerConfig = Field(default_factory=ServerConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
-    jwt: JWTConfig = Field(default_factory=JWTConfig)
-    
+    security: SecurityConfig = Field(default_factory=SecurityConfig)
+    date: DateConfig = DateConfig()
+
     class Config:
         env_nested_delimiter = "__"
         env_file = BASE_DIR / ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+
 
 settings = Settings()

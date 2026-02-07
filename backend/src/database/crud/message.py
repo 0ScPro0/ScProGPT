@@ -20,37 +20,27 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         message_id: int,
     ) -> Optional[Message]:
         """Get message by ID"""
-        
-        message = await self.get(
-            session=session,
-            id=message_id
-        )
+
+        message = await self.get(session=session, id=message_id)
         return message
 
     async def get_chat_messages(
-        self, 
-        session: AsyncSession, 
-        *, 
-        chat_id: int,
-        skip: int = 0,
-        limit: int = 100
+        self, session: AsyncSession, *, chat_id: int, skip: int = 0, limit: int = 100
     ) -> List[Message]:
         """Get messages for a specific chat"""
-        
+
         messages = await self.get_by_field_multy(
             session=session,
             field_name="chat_id",
             field_value=chat_id,
             skip=skip,
-            limit=limit
+            limit=limit,
         )
         return messages
-    
+
     @log_database_queries
     async def get_message_with_chat(
-        self,
-        session: AsyncSession,
-        message_id: int
+        self, session: AsyncSession, message_id: int
     ) -> Optional[Message]:
         """
         Pure CRUD method: Get message with eager-loaded chat.
@@ -61,7 +51,7 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
             .where(Message.id == message_id)
             .options(selectinload(Message.chat))
         )
-        
+
         result = await session.execute(query)
         return result.scalar_one_or_none()
 
@@ -69,16 +59,13 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         self,
         session: AsyncSession,
         *,
-        message_object: Union[MessageCreate, Dict[str, Any]]
+        message_object: Union[MessageCreate, Dict[str, Any]],
     ) -> Message:
         """Create a new message"""
 
-        message = await self.create(
-            session=session,
-            object_in=message_object
-        )
+        message = await self.create(session=session, object_in=message_object)
         return message
-    
+
     @log_database_queries
     async def update_message_tokens(
         self,
@@ -88,43 +75,32 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         prompt_tokens: int,
         completion_tokens: int,
         total_tokens: int,
-        cost: float
+        cost: float,
     ) -> Optional[Message]:
         """Update token usage and cost for a message"""
-        
-        message = await self.get_message(
-            session=session,
-            message_id=message_id
-        )
+
+        message = await self.get_message(session=session, message_id=message_id)
         if not message:
             return None
-        
+
         fields = {
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
             "total_tokens": total_tokens,
-            "cost": cost
+            "cost": cost,
         }
-        
+
         updated_message = await self.update_fields(
-            session=session,
-            object_id=message_id,
-            fields=fields
+            session=session, object_id=message_id, fields=fields
         )
         return updated_message
-    
+
     async def delete_message(
-        self,
-        session: AsyncSession,
-        *,
-        message_id: int
+        self, session: AsyncSession, *, message_id: int
     ) -> Optional[Message]:
         """Delete message and return deleted object"""
 
-        deleted_message = await self.remove_object_by_id(
-            session=session,
-            id=message_id
-        )
+        deleted_message = await self.remove_object_by_id(session=session, id=message_id)
         return deleted_message
 
 

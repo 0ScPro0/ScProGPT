@@ -7,6 +7,7 @@ from .base import Base
 if TYPE_CHECKING:
     from .chat import Chat
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -18,12 +19,14 @@ class User(Base):
 
     # Permissions
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
-    
+
     # Settings
     settings: Mapped[dict] = mapped_column(JSON, default={})
-    
-    # Business 
-    balance: Mapped[float] = mapped_column(Numeric(10, 2), default=0.00)
-    api_key: Mapped[str] = mapped_column(String, unique=True, index=True)  
 
-    chats: Mapped[list["Chat"]] = relationship("Chat", back_populates="users", cascade="all, delete-orphan")
+    # Business
+    balance: Mapped[float] = mapped_column(Numeric(10, 2), default=0.00)
+    api_key: Mapped[str] = mapped_column(String, unique=True, index=True)
+
+    chats: Mapped[list["Chat"]] = relationship(
+        "Chat", back_populates="users", cascade="all, delete-orphan"
+    )

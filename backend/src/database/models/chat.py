@@ -9,19 +9,26 @@ if TYPE_CHECKING:
     from .user import User
     from .message import Message
 
+
 class Chat(Base):
     __tablename__ = "chats"
-    
+
     # User id to relationship
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False
+    )
 
     # Title
     title: Mapped[str] = mapped_column(String, default="New Chat")
-    
+
     # Metadata
-    model: Mapped[str] = mapped_column(String, default="gpt-3.5-turbo")  # Текущая модель
-    provider: Mapped[str] = mapped_column(String)  # openai, anthropic, gemini, openrouter
-    
+    model: Mapped[str] = mapped_column(
+        String, default="gpt-3.5-turbo"
+    )  # Текущая модель
+    provider: Mapped[str] = mapped_column(
+        String
+    )  # openai, anthropic, gemini, openrouter
+
     # Settings
     pinned: Mapped[bool] = mapped_column(Boolean, default=False)
     system_prompt: Mapped[str] = mapped_column(String, nullable=True)
@@ -30,15 +37,17 @@ class Chat(Base):
 
     # Position
     position: Mapped[int] = mapped_column(Integer, default=1, autoincrement=True)
-    
+
     # Statistics
     message_count: Mapped[int] = mapped_column(Integer, default=0)
     total_tokens_used: Mapped[int] = mapped_column(Integer, default=0)
-    
+
     # Soft delete
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     deleted_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-    
+
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="chats")
-    messages: Mapped["Message"] = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
+    messages: Mapped["Message"] = relationship(
+        "Message", back_populates="chat", cascade="all, delete-orphan"
+    )

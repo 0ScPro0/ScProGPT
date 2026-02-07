@@ -2,9 +2,11 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from datetime import datetime
 
+
 class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr = Field(..., max_length=255)
+
 
 class UserCreate(UserBase):
     password: str = Field(
@@ -12,6 +14,7 @@ class UserCreate(UserBase):
         min_length=8,
         max_length=100,
     )
+
 
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
@@ -21,12 +24,14 @@ class UserUpdate(BaseModel):
     settings: Optional[dict] = None
     balance: Optional[float] = Field(None, ge=0)  # ge=0 - больше или равно 0
     api_key: Optional[str] = Field(None, min_length=32, max_length=255)
-    
+
     model_config = ConfigDict(extra="forbid")  # Запрещаем лишние поля
+
 
 class UserUpdatePassword(BaseModel):
     current_password: str = Field(..., min_length=8, max_length=100)
     new_password: str = Field(..., min_length=8, max_length=100)
+
 
 class UserResponse(UserBase):
     id: int
@@ -37,8 +42,9 @@ class UserResponse(UserBase):
     api_key: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    
-    model_config = ConfigDict(from_attributes=True) 
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class UserPublic(BaseModel):
     id: int
