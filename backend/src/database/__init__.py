@@ -6,9 +6,9 @@ from database.models.chat import Chat
 from database.models.message import Message
 
 from database.crud.base import CRUDBase
-from database.crud.user import CRUDUser
-from database.crud.chat import CRUDChat
-from database.crud.message import CRUDMessage
+from database.crud.user import CRUDUser, user_crud
+from database.crud.chat import CRUDChat, chat_crud
+from database.crud.message import CRUDMessage, message_crud
 
 __all__ = [
     "database",
@@ -20,4 +20,7 @@ __all__ = [
     "CRUDUser",
     "CRUDChat",
     "CRUDMessage",
+    "user_crud",
+    "chat_crud",
+    "message_crud",
 ]
