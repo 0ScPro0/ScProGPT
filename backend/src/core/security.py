@@ -1,25 +1,46 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from fastapi import Depends
 import jwt  # PyJWT
 from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import Request, HTTPException, status
+from fastapi.security import HTTPBearer, OAuth2PasswordBearer
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
+from database import database, user_crud, User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 security = HTTPBearer(auto_error=False)  # Разрешаем запросы без токена
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify password against hash"""
-    return pwd_context.verify(plain_password, hashed_password)
+def verify_password(password: str, hashed_password: str) -> bool:
+    """
+    Verify password against hash
+
+    Args:
+        password: Password to verify
+        hashed_password: Hashed password
+
+    Returns:
+        True if password matches, False otherwise
+    """
+    return pwd_context.verify(password, hashed_password)
 
 
-def get_password_hash(password: str) -> str:
-    """Hash password"""
+def hash_password(password: str) -> str:
+    """
+    Hash password
+
+    Args:
+        password: Password to hash
+
+    Returns:
+        Hashed password
+    """
     return pwd_context.hash(password)
 
 
@@ -38,16 +59,16 @@ def create_access_token(
     """
     # Set expiration
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(
+        expire = datetime.now(timezone.utc) + timedelta(
             minutes=settings.security.access_token_expire_minutes
         )
 
     # Create payload
     payload = {
         "exp": expire,  # expiration time
-        "iat": datetime.utcnow(),  # issued at
+        "iat": datetime.now(timezone.utc),  # issued at
         "type": "access",  # token type
         **subject,
     }
@@ -80,25 +101,35 @@ def decode_token(token: str) -> Optional[dict]:
         return None
 
 
-def get_current_user(token: str):
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    session: AsyncSession = Depends(database.get_session),
+) -> Optional[User]:
     """
-    Get user from token (basic example)
-    In real app, you would fetch user from DB here
+    Get user from JWT token
+    Args:
+        token: JWT token
+    Returns:
+        User object or None if invalid/expired
     """
+    # Get payload
     payload = decode_token(token)
     if not payload:
         return None
-
-    # Check token type
-    if payload.get("type") != "access":
+    if payload.get("type") != "access":  # Check token type
         return None
 
+    # Get user ID
     user_id = payload.get("sub")
     if not user_id:
         return None
 
-    # Здесь ты бы получал пользователя из БД
-    # user = await user_crud.get(user_id)
-    # return user
+    # Get user
+    user: User = await user_crud.get(session, user_id)
 
-    return {"id": user_id}  # Заглушка
+    # Check user is active
+    is_active = await user_crud.is_active(session=session, user_id=user.id)
+    if user and not is_active:
+        return None
+
+    return user
