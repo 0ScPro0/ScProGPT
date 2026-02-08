@@ -23,10 +23,11 @@ if config.config_file_name is not None:
 import sys
 from pathlib import Path
 
-backend_dir = Path(__file__).parent.parent # backend/
-sys.path.insert(0, str(backend_dir / "src")) # <- Нужно получить backend/src
+backend_dir = Path(__file__).parent.parent  # backend/
+sys.path.insert(0, str(backend_dir / "src"))  # <- Нужно получить backend/src
 
 from src.database import Base
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -34,7 +35,27 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 from src.core.config import settings
-config.set_main_option("sqlalchemy.url", settings.database.url)
+import os
+
+# Ensure the database directory exists
+db_url = settings.database.url
+if db_url.startswith("sqlite"):
+    # Extract the path from the SQLite URL
+    if "///" in db_url:
+        db_path = db_url.split("///")[-1]
+        if db_path.startswith("./"):
+            db_path = db_path[2:]  # Remove the ./ prefix
+        # Create the full path relative to the backend directory
+        full_db_path = os.path.join(os.path.dirname(__file__), "..", db_path)
+        # Ensure the directory exists
+        db_dir = os.path.dirname(full_db_path)
+        if not os.path.exists(db_dir):
+            os.makedirs(db_dir)
+        # Update the URL with the absolute path
+        db_url = f"sqlite+aiosqlite:///{os.path.abspath(full_db_path)}"
+
+config.set_main_option("sqlalchemy.url", db_url)
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
