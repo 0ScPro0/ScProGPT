@@ -12,7 +12,9 @@ from schemas.auth import (
     TokenRefreshRequest,
     TokenRefreshResponse,
 )
+from schemas.user import UserSchema, UserResponse
 from services.auth import AuthService
+from services.user import UserService
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
@@ -32,6 +34,13 @@ async def get_auth_service(
     return AuthService(session)
 
 
+async def get_user_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> UserService:
+    """Get user service"""
+    return UserService(session)
+
+
 __all__ = [
     "SignInRequest",
     "SignUpRequest",
@@ -40,7 +49,11 @@ __all__ = [
     "TokenRefreshResponse",
     "SignInResponse",
     "SignUpResponse",
+    "AuthService",
+    "UserService",
+    "UserSchema",
+    "UserResponse",
     "get_db_session",
     "get_auth_service",
-    "AuthService",
+    "get_user_service",
 ]

@@ -1,6 +1,8 @@
 from datetime import timedelta, datetime, timezone
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from core.config import settings
 from utils.logger import logger, log
@@ -22,7 +24,7 @@ from schemas.auth import (
     TokenRefreshRequest,
     TokenRefreshResponse,
 )
-from schemas.user import UserSchema, UserCreate
+from schemas.user import UserSchema, UserResponse
 from services.base import BaseService
 
 
@@ -72,10 +74,8 @@ class AuthService(BaseService):
         refresh_token = create_refresh_token({"sub": str(user_object.id)})
 
         # Calculate expiration times
-        access_token_expires_in = settings.security.access_token_expire_minutes * 60
-        refresh_token_expires_in = (
-            settings.security.refresh_token_expire_days * 24 * 60 * 60
-        )
+        access_token_expires_in = settings.security.access_token_expire_minutes
+        refresh_token_expires_in = settings.security.refresh_token_expire_days
 
         # Store refresh token in database
         refresh_token_payload = decode_token(refresh_token)
@@ -92,7 +92,7 @@ class AuthService(BaseService):
 
         # Return response
         return SignUpResponse(
-            user=UserSchema.model_validate(user_object),
+            user=UserResponse.model_validate(user_object),
             access_token=access_token,
             refresh_token=refresh_token,
             access_token_expires_in=access_token_expires_in,
@@ -151,12 +151,36 @@ class AuthService(BaseService):
 
         # Return response
         return SignInResponse(
-            user=UserSchema.model_validate(user_object),
+            user=UserResponse.model_validate(user_object),
             access_token=access_token,
             refresh_token=refresh_token,
             access_token_expires_in=access_token_expires_in,
             refresh_token_expires_in=refresh_token_expires_in,
         )
+
+    @log
+    async def get_current_user(self, token: str):
+        """
+        Get current user from token
+
+        Args:
+            token (str): Access token
+
+        Raises:
+            AuthError: If token is invalid or expired
+
+        Returns:
+            User: Current user
+        """
+        # Decode token
+        payload = decode_token(token)
+        if not payload or payload.get("type") != "access":
+            raise AuthError("Invalid token")
+
+        # Get user ID from token
+        user_id = payload.get("sub")
+        if not user_id:
+            raise AuthError("Invalid token")
 
     @log
     async def refresh_token(self, refresh_request: TokenRefreshRequest):

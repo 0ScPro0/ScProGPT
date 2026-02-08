@@ -5,16 +5,15 @@ from fastapi import Depends
 import jwt  # PyJWT
 from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext
-from fastapi.security import HTTPBearer, OAuth2PasswordBearer
-
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
+from api.exceptions import AuthError
 from database import database, user_crud, User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-security = HTTPBearer(auto_error=False)  # Разрешаем запросы без токена
+http_bearer = HTTPBearer()
 
 
 def verify_password(password: str, hashed_password: str) -> bool:
@@ -141,37 +140,40 @@ def decode_token(token: str) -> Optional[dict]:
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
     session: AsyncSession = Depends(database.get_session),
 ) -> Optional[User]:
     """
     Get user from JWT token
 
     Args:
-        token: JWT token
+        credentials: HTTPAuthorizationCredentials
         session: Database session
 
     Returns:
         User object or None if invalid/expired
     """
     # Get payload
+    token = credentials.credentials
     payload = decode_token(token)
     if not payload:
-        return None
+        raise AuthError("Invalid token")
     if payload.get("type") != "access":  # Check token type
-        return None
+        raise AuthError("Invalid token")
 
     # Get user ID
     user_id = payload.get("sub")
     if not user_id:
-        return None
+        raise AuthError("Invalid token")
 
     # Get user
     user: User = await user_crud.get(session, user_id)
+    if not user:
+        raise AuthError("User not found")
 
     # Check user is active
     is_active = await user_crud.is_active(session=session, user_id=user.id)
     if user and not is_active:
-        return None
+        raise AuthError("User is not active")
 
     return user

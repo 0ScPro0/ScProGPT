@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
-from schemas.user import UserCreate, UserSchema
+from schemas.user import UserCreate, UserSchema, UserResponse
 
 
 class Token(BaseModel):
@@ -32,7 +32,7 @@ class SignUpRequest(UserCreate):
 
 
 class SignInResponse(BaseModel):
-    user: UserSchema
+    user: UserResponse
     access_token: str
     refresh_token: str
     access_token_expires_in: int
@@ -40,7 +40,7 @@ class SignInResponse(BaseModel):
 
 
 class SignUpResponse(BaseModel):
-    user: UserSchema
+    user: UserResponse
     access_token: str
     refresh_token: str
     access_token_expires_in: int
