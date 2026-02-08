@@ -30,7 +30,9 @@ class User(Base):
 
     # Tokens
     refresh_token: Mapped[str] = mapped_column(String(512), nullable=True)
-    refresh_token_expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    refresh_token_expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     chats: Mapped[list["Chat"]] = relationship(
         "Chat", back_populates="user", cascade="all, delete-orphan"
