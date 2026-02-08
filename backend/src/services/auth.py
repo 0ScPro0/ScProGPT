@@ -2,25 +2,27 @@ from datetime import timedelta, datetime, timezone
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.config import settings
-from src.utils.logger import logger, log
-from src.api.exceptions import AuthError
-from src.core.security import (
+from core.config import settings
+from utils.logger import logger, log
+from api.exceptions import AuthError
+from core.security import (
     create_access_token,
     create_refresh_token,
     hash_password,
     verify_password,
     decode_token,
 )
-from src.database import User, CRUDUser, user_crud
-from src.schemas.auth import (
+from database import User, CRUDUser, user_crud
+from schemas.auth import (
     SignInRequest,
     SignUpRequest,
     Token,
     SignInResponse,
+    SignUpResponse,
     TokenRefreshRequest,
     TokenRefreshResponse,
 )
+from schemas.user import UserSchema, UserCreate
 from services.base import BaseService
 
 
@@ -55,7 +57,7 @@ class AuthService(BaseService):
         user_create_data = {
             "email": user.email,
             "username": user.username,
-            "password": hashed_password,
+            "password_hash": hashed_password,
             "is_active": True,
             "is_superuser": False,
         }
@@ -89,14 +91,13 @@ class AuthService(BaseService):
             )
 
         # Return response
-        return {
-            "user": user_object,
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "access_token_expires_in": access_token_expires_in,
-            "refresh_token_expires_in": refresh_token_expires_in,
-            "token_type": "bearer",
-        }
+        return SignUpResponse(
+            user=UserSchema.model_validate(user_object),
+            access_token=access_token,
+            refresh_token=refresh_token,
+            access_token_expires_in=access_token_expires_in,
+            refresh_token_expires_in=refresh_token_expires_in,
+        )
 
     @log
     async def signin(self, user: SignInRequest):
@@ -149,14 +150,13 @@ class AuthService(BaseService):
             )
 
         # Return response
-        return {
-            "user": user_object,
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "access_token_expires_in": access_token_expires_in,
-            "refresh_token_expires_in": refresh_token_expires_in,
-            "token_type": "bearer",
-        }
+        return SignInResponse(
+            user=UserSchema.model_validate(user_object),
+            access_token=access_token,
+            refresh_token=refresh_token,
+            access_token_expires_in=access_token_expires_in,
+            refresh_token_expires_in=refresh_token_expires_in,
+        )
 
     @log
     async def refresh_token(self, refresh_request: TokenRefreshRequest):

@@ -2,8 +2,8 @@ from typing import Any, Dict, Generic, List, Optional, Set, Type, TypeVar, Union
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.config import settings
-from src.database import Base, CRUDBase
+from core.config import settings
+from database import Base, CRUDBase
 
 ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)

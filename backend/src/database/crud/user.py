@@ -4,10 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 from datetime import datetime
 
-from src.utils.logger import logger, log_database_queries
+from utils.logger import logger, log_database_queries
 from database.crud.base import CRUDBase
 from database.models.user import User
-from src.schemas.user import UserCreate, UserUpdate
+from schemas.user import UserCreate, UserUpdate
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):

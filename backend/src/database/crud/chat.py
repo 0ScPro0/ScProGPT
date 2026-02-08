@@ -4,10 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select, desc, func
 
-from src.utils.logger import logger, log_database_queries
+from utils.logger import logger, log_database_queries
 from database.crud.base import CRUDBase
 from database.models.chat import Chat
-from src.schemas.chat import ChatCreate, ChatUpdate
+from schemas.chat import ChatCreate, ChatUpdate
 
 
 class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):

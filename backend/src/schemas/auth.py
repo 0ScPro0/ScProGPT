@@ -1,9 +1,8 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
-from src.database.models.user import User
-from src.schemas.user import UserCreate
+from schemas.user import UserCreate, UserSchema
 
 
 class Token(BaseModel):
@@ -25,7 +24,7 @@ class TokenRefreshResponse(BaseModel):
 
 class SignInRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=8, max_length=72)
 
 
 class SignUpRequest(UserCreate):
@@ -33,8 +32,17 @@ class SignUpRequest(UserCreate):
 
 
 class SignInResponse(BaseModel):
+    user: UserSchema
     access_token: str
     refresh_token: str
     access_token_expires_in: int
     refresh_token_expires_in: int
-    user_info: User
+
+
+class SignUpResponse(BaseModel):
+    user: UserSchema
+    access_token: str
+    refresh_token: str
+    access_token_expires_in: int
+    refresh_token_expires_in: int
+    token_type: str = "bearer"

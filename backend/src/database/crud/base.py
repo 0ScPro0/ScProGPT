@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
 from sqlalchemy.sql.expression import func
 
-from src.utils.logger import logger, log_database_queries
+from utils.logger import logger, log_database_queries
 from database.models.base import Base
 
 ModelType = TypeVar("ModelType", bound=Base)

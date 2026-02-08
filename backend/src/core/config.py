@@ -19,6 +19,7 @@ class ServerConfig(BaseModel):
 
 class DatabaseConfig(BaseModel):
     url: str = Field(default="")
+    alembic_url: str = Field(default="")
     echo: bool = Field(default=False)
     echo_pool: bool = Field(default=False)
     pool_size: int = Field(default=5)

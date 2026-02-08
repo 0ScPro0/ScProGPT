@@ -4,10 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 
-from src.utils.logger import logger, log_database_queries
+from utils.logger import logger, log_database_queries
 from database.crud.base import CRUDBase
 from database.models.message import Message
-from src.schemas.message import MessageCreate, MessageUpdate
+from schemas.message import MessageCreate, MessageUpdate
 
 
 class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):

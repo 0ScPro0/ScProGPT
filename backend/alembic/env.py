@@ -38,7 +38,7 @@ from src.core.config import settings
 import os
 
 # Ensure the database directory exists
-db_url = settings.database.url
+db_url = settings.database.alembic_url
 if db_url.startswith("sqlite"):
     # Extract the path from the SQLite URL
     if "///" in db_url:
