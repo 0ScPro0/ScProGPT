@@ -6,7 +6,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from core.config import settings
 from utils.logger import logger, log
-from api.exceptions import AuthError
+from core.exceptions import AuthError
 from core.security import (
     create_access_token,
     create_refresh_token,

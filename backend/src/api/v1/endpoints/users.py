@@ -4,7 +4,7 @@ from ...dependencies import (
     UserService,
     get_user_service,
 )
-from ...exceptions import PermissionDeniedError
+from core.exceptions import PermissionDeniedError
 from database import User
 from core.security import get_current_user
 

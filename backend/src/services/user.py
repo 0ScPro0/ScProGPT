@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from utils.logger import logger, log
-from api.exceptions import PermissionDeniedError
+from core.exceptions import PermissionDeniedError
 from core.security import (
     create_access_token,
     create_refresh_token,
