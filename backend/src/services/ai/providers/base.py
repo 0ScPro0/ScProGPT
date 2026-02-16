@@ -14,7 +14,6 @@ class BaseProvider:
         self.v1_provider_pattern = rf"^{self.provider_name}/v1(?:/.*)?$"
         self.provider_pattern = rf"^{self.provider_name}(?:/.*)?$"
 
-    @log
     def is_model_supports(self, model: str) -> Optional[str]:
         """
         Check if the model is currently supported.
@@ -45,7 +44,6 @@ class BaseProvider:
             return model
         return None
 
-    @log
     def validate_model(self, model: str) -> Optional[str]:
         """
         Validate input model
@@ -64,7 +62,7 @@ class BaseProvider:
     @log
     def set_prefix(self, prefix: str) -> Optional[str]:
         """
-        Set current prefix
+        Set new prefix
 
         Args:
             prefix: str
@@ -76,7 +74,6 @@ class BaseProvider:
             return prefix
         return None
 
-    @log
     def validate_prefix(self, prefix: Optional[str] = None) -> Optional[str]:
         """
         Validate input prefix
