@@ -38,6 +38,11 @@ class SecurityConfig(BaseModel):
     )
 
 
+class AIConfig(BaseModel):
+    api_key: str = Field(default="")
+    base_url: str = Field(default="https://api.proxyapi.ru/")
+
+
 class DateConfig(BaseModel):
     datetime_format: str = "%Y-%m-%dT%H:%M:%S"
     date_format: str = "%Y-%m-%d"
@@ -51,6 +56,7 @@ class Settings(BaseSettings):
     server: ServerConfig = Field(default_factory=ServerConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     security: SecurityConfig = Field(default_factory=SecurityConfig)
+    ai: AIConfig = Field(default_factory=AIConfig)
     date: DateConfig = DateConfig()
 
     class Config:
