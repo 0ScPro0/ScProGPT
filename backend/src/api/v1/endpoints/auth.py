@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from ...dependencies import (
+from api.dependencies import (
     AuthService,
     SignInResponse,
     SignUpResponse,
