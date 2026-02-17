@@ -24,7 +24,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def create(self, schema: CreateSchemaType) -> ModelType:
         return await self.crud.create(self.session, schema)
 
-    async def update(self, id: int, schema: UpdateSchemaType) -> ModelType:
+    async def update(self, id: int, schema: UpdateSchemaType) -> Optional[ModelType]:
         return await self.crud.update(self.session, id, schema)
 
     async def remove(self, id: int) -> ModelType:

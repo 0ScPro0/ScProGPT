@@ -159,7 +159,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self,
         session: AsyncSession,
         *,
-        database_object: ModelType,
+        update_object_id: int,
         object_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
         """
@@ -167,12 +167,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         Args:
             session: Database session
-            database_object: Object to update
+            update_object_id: Object id to update
             object_in: Object data
 
         Returns:
             Updated object
         """
+        database_object: ModelType = await self.get(session, update_object_id)
+
         if isinstance(object_in, dict):
             update_data = object_in
         else:
