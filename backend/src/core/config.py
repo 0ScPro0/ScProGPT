@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 from datetime import timezone
 
-from core.ai.models import (
+from core.ai.openai.models import (
     BASE_MODELS,
     REASONING_MODELS,
     GPT_41_FAMILY,
