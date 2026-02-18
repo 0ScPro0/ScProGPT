@@ -1,18 +1,19 @@
+from typing import Any, Dict, List, Optional
+from abc import ABC, abstractmethod
 import re
-from typing import Any, Optional
 
 from utils.logger import log
 
 
-class BaseProvider:
+class BaseProvider(ABC):
     def __init__(self) -> None:
-        self._possibly_models = []
-        self.supports_models = []
-        self.provider_name = "base"
-        self.prefix = "openai/v1"
-        self.requires_v1_prefix = False
-        self.v1_provider_pattern = rf"^{self.provider_name}/v1(?:/.*)?$"
-        self.provider_pattern = rf"^{self.provider_name}(?:/.*)?$"
+        self._possibly_models: List[str] = []
+        self.supports_models: List[str] = []
+        self.provider_name: str = "base"
+        self.prefix: str = "openai/v1"
+        self.requires_v1_prefix: bool = False
+        self.v1_provider_pattern: str = rf"^{self.provider_name}/v1(?:/.*)?$"
+        self.provider_pattern: str = rf"^{self.provider_name}(?:/.*)?$"
 
     def is_model_supports(self, model: str) -> Optional[str]:
         """

@@ -4,6 +4,17 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 from datetime import timezone
 
+from core.ai.models import (
+    BASE_MODELS,
+    REASONING_MODELS,
+    GPT_41_FAMILY,
+    GPT_5_FAMILY,
+    GPT_51_FAMILY,
+    GPT_52_FAMILY,
+    SUPPORTED_MODELS,
+    get_all_possible_models,
+)
+
 BASE_DIR = Path(__file__).parent.parent.parent  # backend.src.core.config
 
 
@@ -41,6 +52,23 @@ class SecurityConfig(BaseModel):
 class AIConfig(BaseModel):
     api_key: str = Field(default="")
     base_url: str = Field(default="https://api.proxyapi.ru/")
+
+    class OpenAIConfig(BaseModel):
+        # OpenAI model lists
+        base_models: list[str] = Field(default_factory=lambda: BASE_MODELS)
+        reasoning_models: list[str] = Field(default_factory=lambda: REASONING_MODELS)
+        gpt_41_family: list[str] = Field(default_factory=lambda: GPT_41_FAMILY)
+        gpt_5_family: list[str] = Field(default_factory=lambda: GPT_5_FAMILY)
+        gpt_51_family: list[str] = Field(default_factory=lambda: GPT_51_FAMILY)
+        gpt_52_family: list[str] = Field(default_factory=lambda: GPT_52_FAMILY)
+        supported_models: list[str] = Field(default_factory=lambda: SUPPORTED_MODELS)
+
+        @property
+        def all_possible_models(self) -> list[str]:
+            """Returns all possible models"""
+            return get_all_possible_models()
+
+    openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
 
 
 class DateConfig(BaseModel):
