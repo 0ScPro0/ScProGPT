@@ -7,7 +7,7 @@ from utils.logger import log
 
 class BaseProvider(ABC):
     def __init__(self) -> None:
-        self._possibly_models: List[str] = []
+        self._possibly_models: Dict[str, str] = {}
         self.supports_models: List[str] = []
         self.provider_name: str = "base"
         self.prefix: str = "openai/v1"
@@ -28,6 +28,15 @@ class BaseProvider(ABC):
         if model in self.supports_models:
             return model
         return None
+
+    def get_supports_models(self) -> List[str]:
+        """
+        Get list of currently supported models.
+
+        Returns:
+            List of supported model names
+        """
+        return self.supports_models.copy()
 
     @log
     def add_supports_model(self, model: str) -> Optional[str]:
