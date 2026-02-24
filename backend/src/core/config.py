@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 from datetime import timezone
 
-from ai.models import load_models
+from core.ai.models import load_models
 
 BASE_DIR = Path(__file__).parent.parent.parent  # backend.src.core.config
 

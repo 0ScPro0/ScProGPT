@@ -29,9 +29,7 @@ def upgrade() -> None:
         sa.Column("password_hash", sa.String(length=255), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("is_superuser", sa.Boolean(), nullable=False),
-        sa.Column(
-            "balance", sa.Numeric(precision=10, scale=2), nullable=False
-        ),
+        sa.Column("balance", sa.Numeric(precision=10, scale=2), nullable=False),
         sa.Column("api_key", sa.String(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
@@ -39,9 +37,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("email"),
         sa.UniqueConstraint("username"),
     )
-    op.create_index(
-        op.f("ix_users_api_key"), "users", ["api_key"], unique=True
-    )
+    op.create_index(op.f("ix_users_api_key"), "users", ["api_key"], unique=True)
     op.create_table(
         "chats",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -88,13 +84,9 @@ def upgrade() -> None:
         ["chat_id", "created_at"],
         unique=False,
     )
-    op.create_index(
-        "ix_messages_created_at", "messages", ["created_at"], unique=False
-    )
+    op.create_index("ix_messages_created_at", "messages", ["created_at"], unique=False)
     op.create_index("ix_messages_role", "messages", ["role"], unique=False)
-    op.create_index(
-        "ix_messages_tokens", "messages", ["total_tokens"], unique=False
-    )
+    op.create_index("ix_messages_tokens", "messages", ["total_tokens"], unique=False)
     # ### end Alembic commands ###
 
 
