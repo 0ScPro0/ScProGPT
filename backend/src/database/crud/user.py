@@ -248,8 +248,8 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         Returns:
             bool: True if user is active, False otherwise
         """
-        user: User = await self.get(session=session, id=user_id)
-        return user.is_active
+        user = await self.get(session=session, id=user_id)
+        return user.is_active if user else False
 
 
 user_crud = CRUDUser(User)
