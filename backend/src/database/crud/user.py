@@ -204,7 +204,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         user_id: int,
     ) -> Optional[User]:
         """
-        Activate user
+        Deactivate user
 
         Args:
             session: Database session
