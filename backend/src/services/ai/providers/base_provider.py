@@ -7,7 +7,7 @@ from utils.logger import log
 
 class BaseProvider(ABC):
     def __init__(self) -> None:
-        self._possibly_models: Dict[str, str] = {}
+        self._available_models: Dict[str, str] = {}
         self.supports_models: List[str] = []
         self.provider_name: str = "base"
         self.prefix: str = "openai/v1"
@@ -65,7 +65,7 @@ class BaseProvider(ABC):
             Model name or None if has not been validated
         """
         stripped_model = model.strip("/")
-        if stripped_model in self._possibly_models:
+        if stripped_model in self._available_models:
             return stripped_model
         return None
 
