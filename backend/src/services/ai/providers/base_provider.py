@@ -23,7 +23,7 @@ class BaseProvider(ABC):
             model: str
 
         Returns:
-            Model or None if model is not supported
+            True or False if model is not supported
         """
         if model in self.supports_models:
             return True
