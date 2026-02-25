@@ -15,7 +15,7 @@ class BaseProvider(ABC):
         self.v1_provider_pattern: str = rf"^{self.provider_name}/v1(?:/.*)?$"
         self.provider_pattern: str = rf"^{self.provider_name}(?:/.*)?$"
 
-    def is_model_supports(self, model: str) -> Optional[str]:
+    def is_model_supports(self, model: str) -> bool:
         """
         Check if the model is currently supported.
 
@@ -26,8 +26,8 @@ class BaseProvider(ABC):
             Model or None if model is not supported
         """
         if model in self.supports_models:
-            return model
-        return None
+            return True
+        return False
 
     def get_supports_models(self) -> List[str]:
         """
