@@ -1,8 +1,9 @@
-from typing import Any, Dict, List, Optional
+from typing import AsyncGenerator, Dict, List, Optional
 from abc import ABC, abstractmethod
 import re
 
 from utils.logger import log
+from schemas.ai import ProviderResponse
 
 
 class BaseProvider(ABC):
@@ -14,6 +15,18 @@ class BaseProvider(ABC):
         self.requires_v1_prefix: bool = False
         self.v1_provider_pattern: str = rf"^{self.provider_name}/v1(?:/.*)?$"
         self.provider_pattern: str = rf"^{self.provider_name}(?:/.*)?$"
+
+    @abstractmethod
+    async def generate_text(
+        self, messages: list, model: str, **kwargs
+    ) -> ProviderResponse:
+        pass
+
+    @abstractmethod
+    async def generate_stream(
+        self, messages: list, model: str, **kwargs
+    ) -> AsyncGenerator:
+        pass
 
     def is_model_supports(self, model: str) -> bool:
         """
@@ -39,7 +52,7 @@ class BaseProvider(ABC):
         return self.supports_models.copy()
 
     @log
-    def add_supports_model(self, model: str) -> Optional[str]:
+    def add_supports_model(self, model: str) -> bool:
         """
         Add model to supported
 
@@ -47,12 +60,12 @@ class BaseProvider(ABC):
             model: str
 
         Returns:
-            Model name or None if model not possible
+            True or False if model not available
         """
         if self.validate_model(model):
             self.supports_models.append(model)
-            return model
-        return None
+            return True
+        return False
 
     def validate_model(self, model: str) -> Optional[str]:
         """
@@ -78,7 +91,7 @@ class BaseProvider(ABC):
             prefix: str
 
         Returns:
-            Prefix name or None if prefix not possible
+            Prefix name or None if prefix not available
         """
         if self.validate_prefix(prefix):
             return prefix
@@ -112,6 +125,6 @@ class BaseProvider(ABC):
 
         # Validate
         if re.match(pattern, stripped_prefix):
-            return target_prefix
+            return stripped_prefix
 
         return None
