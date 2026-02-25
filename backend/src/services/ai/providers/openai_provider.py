@@ -17,7 +17,8 @@ class OpenAIProvider(BaseProvider):
     def __init__(self) -> None:
         super().__init__()
         self.provider_name = "openai"
-        self.prefix: str = "openai/v1"
+        self.prefix = "openai/v1"
+        self.requires_v1_prefix = True
         self.base_url = settings.ai.base_url + self.prefix
         self.client = AsyncOpenAI(api_key=settings.ai.api_key, base_url=self.base_url)
         self._possibly_models = settings.ai.openai.models
