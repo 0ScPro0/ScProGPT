@@ -9,11 +9,12 @@ from database import User
 from core.security import get_current_user
 from utils.logger import logger
 
-router = APIRouter(prefix="/ai", tags=["ai"])
+router = APIRouter(prefix="/assistant", tags=["messages"])
 
 
-@router.post("/generation/text")
-async def generate_text(
+@router.post("/create/text")
+async def create_assistant_message(
+    chat_id: int,
     ai_service: AIService = Depends(get_ai_service),
     current_user: User = Depends(get_current_user),
     prompt: str = "",
@@ -24,8 +25,9 @@ async def generate_text(
     return await ai_service.generate_text(prompt=prompt)
 
 
-@router.post("/generation/text/stream")
-async def generate_text_stream(
+@router.post("/create/text/stream")
+async def create_assistant_message_stream(
+    chat_id: int,
     ai_service: AIService = Depends(get_ai_service),
     current_user: User = Depends(get_current_user),
     prompt: str = "",
