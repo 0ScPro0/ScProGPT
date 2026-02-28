@@ -15,6 +15,7 @@ from schemas.auth import (
 from schemas.user import UserSchema, UserResponse
 from services.auth import AuthService
 from services.user import UserService
+from services.ai.service import AIService
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
@@ -39,6 +40,11 @@ async def get_user_service(
 ) -> UserService:
     """Get user service"""
     return UserService(session)
+
+
+async def get_ai_service() -> AIService:
+    """Get ai service"""
+    return AIService()
 
 
 __all__ = [

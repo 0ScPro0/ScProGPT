@@ -27,6 +27,3 @@ class ProviderResponseChunk(BaseModel):
     provider: str = Field(default="openai")
     model: str = Field(default="gpt-4o-mini")
     content: str = Field(default="")
-    usage: dict[str, int] = Field(
-        default={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
-    )

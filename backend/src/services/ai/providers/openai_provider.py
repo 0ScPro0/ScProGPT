@@ -87,6 +87,7 @@ class OpenAIProvider(BaseProvider):
             provider response stream
         """
         # Generate response
+        content = ""
         try:
             stream = await self.client.chat.completions.create(
                 messages=messages,
@@ -97,20 +98,27 @@ class OpenAIProvider(BaseProvider):
             )
 
             # Yield content
-            content = ""
             async for chunk in stream:
-                if chunk.choices[0].delta.content is not None:
+                if not chunk.choices:
+                    continue
+
+                delta = chunk.choices[0].delta
+                if delta and delta.content:
                     # Add content
-                    content += chunk.choices[0].delta.content
+                    content += delta.content
 
                     # Yield
                     yield ProviderResponseChunk(
                         provider=self.provider_name,
                         model=model,
-                        content=chunk.choices[0].delta.content,
+                        content=delta.content,
                     )
         except Exception as e:
-            raise AIStreamGenerationError(f"Failed to generate response, detail: {e}")
+            yield ProviderResponseChunk(
+                provider=self.provider_name,
+                model=model,
+                content=f"\n\n[ERROR: {str(e)}]",
+            )
 
         # Return full response
         response = ProviderResponseStream(
