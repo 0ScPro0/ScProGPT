@@ -15,6 +15,6 @@ async def create_user_message(
     user_service: UserService = Depends(get_user_service),
     current_user: User = Depends(get_current_user),
 ):
-    """Create user message"""
+    """Create message from user"""
     if not current_user:
         raise AuthError(detail="Not authenticated")
