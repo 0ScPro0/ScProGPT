@@ -1,5 +1,5 @@
 from openai import AsyncOpenAI
-from typing import Union, AsyncGenerator
+from typing import Union, AsyncGenerator, List
 
 from core.config import settings
 from core.exceptions import AIGenerationError, AIStreamGenerationError
@@ -28,7 +28,7 @@ class OpenAIProvider(BaseProvider):
     async def generate_text(
         self,
         *,
-        messages: list,
+        messages: List[AssistantMessage],
         model: str,
         temperature: float = 1,
         max_tokens: int = 4096,
@@ -69,7 +69,7 @@ class OpenAIProvider(BaseProvider):
     async def generate_stream(
         self,
         *,
-        messages: list,
+        messages: List[AssistantMessage],
         model: str,
         temperature: float = 1,
         max_tokens: int = 4096,
