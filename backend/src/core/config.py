@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings
 from datetime import timezone
 
 from core.ai.models import load_models
+from services.ai.providers import OpenAIProvider
 
 BASE_DIR = Path(__file__).parent.parent.parent  # backend.src.core.config
 
@@ -43,6 +44,9 @@ class SecurityConfig(BaseModel):
 class AIConfig(BaseModel):
     api_key: str = Field(default="")
     base_url: str = Field(default="https://api.proxyapi.ru/")
+
+    default_provider: OpenAIProvider = Field(default_factory=OpenAIProvider)
+    default_model: str = Field(default_factory=lambda: load_models("openai")["default"])
 
     class OpenAIConfig(BaseModel):
         # OpenAI model lists
