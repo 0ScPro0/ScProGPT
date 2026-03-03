@@ -1,3 +1,3 @@
-from services.ai.providers.openai_provider import OpenAIProvider
+from services.ai.providers.openai_provider import BaseProvider, OpenAIProvider
 
-__all__ = ["OpenAIProvider"]
+__all__ = ["BaseProvider", "OpenAIProvider"]

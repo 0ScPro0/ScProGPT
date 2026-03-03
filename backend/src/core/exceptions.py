@@ -49,6 +49,13 @@ class InvalidTokenTypeError(HTTPException):
         super().__init__(status.HTTP_400_BAD_REQUEST, detail, headers)
 
 
+class ProviderManagmentError(HTTPException):
+    def __init__(
+        self, detail: Any = None, headers: Optional[Dict[str, Any]] = None
+    ) -> None:
+        super().__init__(status.HTTP_422_UNPROCESSABLE_CONTENT, detail, headers)
+
+
 class AIGenerationError(HTTPException):
     def __init__(
         self, detail: Any = None, headers: Optional[Dict[str, Any]] = None
