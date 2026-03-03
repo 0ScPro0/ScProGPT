@@ -86,11 +86,15 @@ class OpenAIProvider(BaseProvider):
         Returns:
             provider response stream
         """
+        # Dump messages
+        # Specified list type hint cause create method returns exceptions for any other type
+        dump_messages: list = [m.model_dump() for m in messages]
+
         # Generate response
         content = ""
         try:
             stream = await self.client.chat.completions.create(
-                messages=messages,
+                messages=dump_messages,
                 model=model,
                 temperature=temperature,
                 max_tokens=max_tokens,
