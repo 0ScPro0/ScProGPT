@@ -1,7 +1,11 @@
 from typing import Set, Dict, Union, Optional, TypeVar
 
 from core.config import settings
-from core.exceptions import NotFoundError, ProviderManagementError
+from core.exceptions import (
+    NotFoundError,
+    ProviderManagementError,
+    HTTPNotImplementedError,
+)
 from services.ai.providers import BaseProvider, OpenAIProvider  # TODO more providers
 
 
@@ -11,14 +15,16 @@ class NotImplementedProvider:
 
     def __getattr__(self, name):
         """Intercepts all method calls"""
-        raise NotImplementedError(
+        raise HTTPNotImplementedError(
             f"Provider '{self.provider_name}' is not implemented. "
             f"Method '{name}' called but provider is still a stub."
         )
 
     def __call__(self, *args, **kwargs):
         """In case the object itself is called as a function"""
-        raise NotImplementedError(f"Provider '{self.provider_name}' is not implemented")
+        raise HTTPNotImplementedError(
+            f"Provider '{self.provider_name}' is not implemented"
+        )
 
 
 ProviderType = Union[OpenAIProvider, NotImplementedProvider]
