@@ -1,7 +1,7 @@
 from typing import Set, Dict, Union, Optional, TypeVar
 
 from core.config import settings
-from core.exceptions import NotFoundError, ProviderManagmentError
+from core.exceptions import NotFoundError, ProviderManagementError
 from services.ai.providers import BaseProvider, OpenAIProvider  # TODO more providers
 
 
@@ -24,7 +24,7 @@ class NotImplementedProvider:
 ProviderType = Union[OpenAIProvider, NotImplementedProvider]
 
 
-class AISwitcher:
+class ProviderManager:
     def __init__(self):
         self.current_provider: ProviderType = settings.ai.default_provider
         self.current_model: str = settings.ai.default_model
@@ -101,7 +101,7 @@ class AISwitcher:
                 self.current_provider = new_provider
             return True
         except Exception as e:
-            raise ProviderManagmentError(f"Can not set new current provider: {e}")
+            raise ProviderManagementError(f"Can not set new current provider: {e}")
 
     def is_provider_available(self, provider_name: str) -> bool:
         """
@@ -166,6 +166,27 @@ class AISwitcher:
         # Validate model using provider's validate_model method
         validated_model = provider.validate_model(model_name)
         return validated_model
+
+    def set_model(self, model_name: str) -> bool:
+        """
+        Set new current model by name.
+
+        Args:
+            model_name: Name of the model to set as current.
+
+        Returns:
+            True if new model successfully set.
+
+        Raises:
+            ProviderManagementError: If model cannot be set.
+        """
+        try:
+            if self.is_model_available(model_name=model_name):
+                self.current_model = model_name
+                return True
+            return False
+        except Exception as e:
+            raise ProviderManagementError(f"Can not set new current model {e}")
 
     def is_model_available(
         self, *, provider: Optional[Union[ProviderType, str]] = None, model_name: str
