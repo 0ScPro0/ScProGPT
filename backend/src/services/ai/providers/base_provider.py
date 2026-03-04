@@ -28,7 +28,7 @@ class BaseProvider(ABC):
     ) -> AsyncGenerator:
         pass
 
-    def is_model_supports(self, model: str) -> bool:
+    async def is_model_supports(self, model: str) -> bool:
         """
         Check if the model is currently supported.
 
@@ -42,7 +42,7 @@ class BaseProvider(ABC):
             return True
         return False
 
-    def get_supports_models(self) -> List[str]:
+    async def get_supports_models(self) -> List[str]:
         """
         Get list of currently supported models.
 
@@ -52,7 +52,7 @@ class BaseProvider(ABC):
         return self.supports_models.copy()
 
     @log
-    def add_supports_model(self, model: str) -> bool:
+    async def add_supports_model(self, model: str) -> bool:
         """
         Add model to supported
 
@@ -67,7 +67,7 @@ class BaseProvider(ABC):
             return True
         return False
 
-    def validate_model(self, model: str) -> Optional[str]:
+    async def validate_model(self, model: str) -> Optional[str]:
         """
         Validate input model
 
@@ -83,7 +83,7 @@ class BaseProvider(ABC):
         return None
 
     @log
-    def set_prefix(self, prefix: str) -> Optional[str]:
+    async def set_prefix(self, prefix: str) -> Optional[str]:
         """
         Set new prefix
 
@@ -97,7 +97,7 @@ class BaseProvider(ABC):
             return prefix
         return None
 
-    def validate_prefix(self, prefix: Optional[str] = None) -> Optional[str]:
+    async def validate_prefix(self, prefix: Optional[str] = None) -> Optional[str]:
         """
         Validate input prefix
         If prefix not assigned, takes current prefix to validate
