@@ -25,6 +25,8 @@ ProviderType = Union[OpenAIProvider, NotImplementedProvider]
 
 
 class ProviderManager:
+    """Manager for working with providers and theirs models"""
+
     def __init__(self):
         self.current_provider: ProviderType = settings.ai.default_provider
         self.current_model: str = settings.ai.default_model
