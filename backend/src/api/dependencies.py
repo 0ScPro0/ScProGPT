@@ -59,7 +59,9 @@ __all__ = [
     "UserService",
     "UserSchema",
     "UserResponse",
+    "AIService",
     "get_db_session",
     "get_auth_service",
     "get_user_service",
+    "get_ai_service",
 ]

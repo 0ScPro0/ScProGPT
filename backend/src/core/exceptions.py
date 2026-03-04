@@ -63,6 +63,13 @@ class ProviderManagementError(HTTPException):
         super().__init__(status.HTTP_422_UNPROCESSABLE_CONTENT, detail, headers)
 
 
+class AIServiceError(HTTPException):
+    def __init__(
+        self, detail: Any = None, headers: Optional[Dict[str, Any]] = None
+    ) -> None:
+        super().__init__(status.HTTP_502_BAD_GATEWAY, detail, headers)
+
+
 class AIGenerationError(HTTPException):
     def __init__(
         self, detail: Any = None, headers: Optional[Dict[str, Any]] = None
