@@ -36,7 +36,7 @@ class ProviderManager:
             "anthropic",
         }
 
-        self._providers: Dict[str, ProviderType] = {
+        self.providers: Dict[str, ProviderType] = {
             "openai": OpenAIProvider(),
             "google": NotImplementedProvider("google"),
             "anthropic": NotImplementedProvider("anthropic"),
@@ -62,7 +62,7 @@ class ProviderManager:
             raise NotFoundError(f"Unavailabe provider: {name}")
 
         # Trying to find provider
-        provider = self._providers.get(name)
+        provider = self.providers.get(name)
         if not provider:
             raise NotFoundError(f"Provider not found or can not be assign: {name}")
 
@@ -127,7 +127,7 @@ class ProviderManager:
         Returns:
             Provider object if found, else None.
         """
-        return self._providers.get(provider_name)
+        return self.providers.get(provider_name)
 
     def _validate_provider(
         self, provider: Optional[Union[ProviderType, str]]
@@ -213,3 +213,85 @@ class ProviderManager:
 
         # Check if model is currently supported
         return provider.is_model_supports(validated_model)
+
+    def get_available_providers(self) -> Set[str]:
+        """
+        Get set of all available provider names.
+
+        Returns:
+            Set of available provider names.
+        """
+        return self._available_providers.copy()
+
+    def get_registered_providers(self) -> list[str]:
+        """
+        Get list of registered (initialized) provider names.
+
+        Returns:
+            List of registered provider names.
+        """
+        return list(self.providers.keys())
+
+    def get_provider_info(
+        self, provider_name: str
+    ) -> Optional[Dict[str, Union[str, list]]]:
+        """
+        Get information about a specific provider.
+
+        Args:
+            provider_name: Name of the provider to get info for.
+
+        Returns:
+            Dictionary with provider info (name, prefix, supported models) or None if not found.
+        """
+        provider = self._find_provider(provider_name)
+        if not provider or isinstance(provider, NotImplementedProvider):
+            return None
+
+        return {
+            "name": provider.provider_name,
+            "prefix": provider.prefix,
+            "supported_models": provider.get_supports_models(),
+            "current_model": self.current_model,
+        }
+
+    def get_current_model(self) -> str:
+        """
+        Get current model name.
+
+        Returns:
+            Current model name.
+        """
+        return self.current_model
+
+    def reset_to_defaults(self) -> bool:
+        """
+        Reset current provider and model to default values.
+
+        Returns:
+            True if reset was successful.
+        """
+        try:
+            self.current_provider = settings.ai.default_provider
+            self.current_model = settings.ai.default_model
+            return True
+        except Exception as e:
+            raise ProviderManagementError(f"Can not reset to defaults: {e}")
+
+    def get_status(self) -> Dict[str, Union[str, Set[str], list]]:
+        """
+        Get current status of the provider manager.
+
+        Returns:
+            Dictionary with current status including:
+            - current_provider: name of current provider
+            - current_model: name of current model
+            - available_providers: set of available provider names
+            - registered_providers: list of registered provider names
+        """
+        return {
+            "current_provider": self.current_provider.provider_name,
+            "current_model": self.current_model,
+            "available_providers": self.get_available_providers(),
+            "registered_providers": self.get_registered_providers(),
+        }
