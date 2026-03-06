@@ -8,6 +8,7 @@ from core.exceptions import (
 )
 from services.ai.providers import BaseProvider, OpenAIProvider  # TODO more providers
 from schemas.ai import ProviderInfo, ProviderStatus
+from utils.logger import log
 
 
 class NotImplementedProvider:
@@ -35,22 +36,25 @@ class ProviderManager:
     """Manager for working with providers and theirs models"""
 
     def __init__(self):
-        self.current_provider: ProviderType = settings.ai.default_provider
-        self.current_model: str = settings.ai.default_model
-
+        # Resolve provider name to instance
         self._available_providers: Set[str] = {
             "openai",
             "openrouter",
             "google",
             "anthropic",
         }
-
         self.providers: Dict[str, ProviderType] = {
             "openai": OpenAIProvider(),
             "google": NotImplementedProvider("google"),
             "anthropic": NotImplementedProvider("anthropic"),
             "openrouter": NotImplementedProvider("openrouter"),
         }
+        self._default_provider_name: str = settings.ai.default_provider
+        self.current_provider: ProviderType = self.providers.get(
+            self._default_provider_name,
+            NotImplementedProvider(self._default_provider_name),
+        )
+        self.current_model: str = settings.ai.default_model
 
     async def get_provider(self, provider_name: str = None) -> Optional[ProviderType]:
         """
@@ -86,6 +90,7 @@ class ProviderManager:
         """
         return await self.get_provider(self.current_provider.provider_name)
 
+    @log
     async def set_provider(self, provider_name: str) -> bool:
         """
         Set new current provider by name.
@@ -157,7 +162,7 @@ class ProviderManager:
         return provider
 
     async def get_model(
-        self, *, provider: Optional[Union[ProviderType, str]] = None, model_name: str
+        self, model_name: str, provider: Optional[Union[ProviderType, str]] = None
     ) -> Optional[str]:
         """
         Get model by name for the specified provider.
@@ -176,6 +181,7 @@ class ProviderManager:
         validated_model = await provider.validate_model(model_name)
         return validated_model
 
+    @log
     async def set_model(self, model_name: str) -> bool:
         """
         Set new current model by name.
@@ -190,7 +196,7 @@ class ProviderManager:
             ProviderManagementError: If model cannot be set.
         """
         try:
-            if self.is_model_available(model_name=model_name):
+            if await self.is_model_available(model_name=model_name):
                 self.current_model = model_name
                 return True
             return False
@@ -198,7 +204,9 @@ class ProviderManager:
             raise ProviderManagementError(f"Can not set new current model {e}")
 
     async def is_model_available(
-        self, *, provider: Optional[Union[ProviderType, str]] = None, model_name: str
+        self,
+        model_name: str,
+        provider: Optional[Union[ProviderType, str]] = None,
     ) -> bool:
         """
         Check if model is available for the given provider.
@@ -271,6 +279,7 @@ class ProviderManager:
         """
         return self.current_model
 
+    @log
     async def reset_to_defaults(self) -> bool:
         """
         Reset current provider and model to default values.
@@ -279,7 +288,10 @@ class ProviderManager:
             True if reset was successful.
         """
         try:
-            self.current_provider = settings.ai.default_provider
+            self.current_provider = self.providers.get(
+                settings.ai.default_provider,
+                NotImplementedProvider(settings.ai.default_provider),
+            )
             self.current_model = settings.ai.default_model
             return True
         except Exception as e:

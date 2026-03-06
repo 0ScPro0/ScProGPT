@@ -1,9 +1,12 @@
-from typing import AsyncGenerator, Dict, List, Optional
+from typing import AsyncGenerator, Dict, List, Optional, Union
 from abc import ABC, abstractmethod
 import re
 
 from utils.logger import log
-from schemas.ai import ProviderResponse
+from schemas.ai import ProviderResponse, AssistantMessage, UserMessage
+
+
+Message = Union[AssistantMessage, UserMessage]
 
 
 class BaseProvider(ABC):
@@ -78,8 +81,11 @@ class BaseProvider(ABC):
             Model name or None if has not been validated
         """
         stripped_model = model.strip("/")
-        if stripped_model in self._available_models:
+        
+        # Check in supports_models list (flat list of model names)
+        if stripped_model in self.supports_models:
             return stripped_model
+        
         return None
 
     @log

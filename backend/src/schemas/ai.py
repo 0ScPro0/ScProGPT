@@ -9,6 +9,11 @@ class AssistantMessage(BaseModel):
     content: Optional[str]
 
 
+class UserMessage(BaseModel):
+    role: Literal["user"] = Field(default="user")
+    content: Optional[str]
+
+
 # ============================================RESPONSE=======================================================
 class ProviderResponse(BaseModel):
     provider: str = Field(default="openai")
@@ -49,23 +54,31 @@ class ProviderStatus(BaseModel):
 # ============================================API REQUESTS===================================================
 class GenerateRequest(BaseModel):
     """Request for text generation"""
+
     prompt: str = Field(..., min_length=1, description="User prompt for AI generation")
-    provider: Optional[str] = Field(None, description="Provider name (uses current if not specified)")
-    model: Optional[str] = Field(None, description="Model name (uses current if not specified)")
+    provider: Optional[str] = Field(
+        None, description="Provider name (uses current if not specified)"
+    )
+    model: Optional[str] = Field(
+        None, description="Model name (uses current if not specified)"
+    )
 
 
 class SetProviderRequest(BaseModel):
     """Request to set current provider"""
+
     provider: str = Field(..., description="Provider name to set as current")
 
 
 class SetModelRequest(BaseModel):
     """Request to set current model"""
+
     model: str = Field(..., description="Model name to set as current")
 
 
 class ProviderSwitchRequest(BaseModel):
     """Request to switch both provider and model"""
+
     provider: Optional[str] = Field(None, description="Provider name to switch to")
     model: Optional[str] = Field(None, description="Model name to switch to")
 
@@ -73,27 +86,33 @@ class ProviderSwitchRequest(BaseModel):
 # ============================================API RESPONSES==================================================
 class AIServiceStatusResponse(BaseModel):
     """Response with AI service status"""
+
     current_provider: str
     current_model: str
     available_providers: List[str]
     registered_providers: List[str]
-    is_configured: bool = Field(..., description="Whether service is properly configured")
+    is_configured: bool = Field(
+        ..., description="Whether service is properly configured"
+    )
 
 
 class ProviderListResponse(BaseModel):
     """Response with list of available providers"""
+
     providers: List[str]
     current_provider: str
 
 
 class ProviderDetailResponse(BaseModel):
     """Response with detailed provider information"""
+
     provider: ProviderInfo
     is_current: bool
 
 
 class ModelListResponse(BaseModel):
     """Response with list of available models for provider"""
+
     provider: str
     models: List[str]
     current_model: str
@@ -101,6 +120,7 @@ class ModelListResponse(BaseModel):
 
 class OperationResponse(BaseModel):
     """Generic response for operations"""
+
     success: bool
     message: str
     previous_value: Optional[str] = None

@@ -15,6 +15,8 @@ from schemas.ai import (
     ProviderDetailResponse,
     ModelListResponse,
     OperationResponse,
+    AssistantMessage,
+    UserMessage,
 )
 from utils.logger import log
 
@@ -22,7 +24,7 @@ from utils.logger import log
 class AIService:
     """
     AI Service for integrating with external AI providers.
-    
+
     Provides:
     - Text generation (sync/stream)
     - Provider and model management
@@ -56,8 +58,8 @@ class AIService:
         provider_instance = await self._resolve_provider(provider)
         model_name = await self._resolve_model(model, provider_instance)
 
-        # Build messages
-        messages = [{"role": "user", "content": prompt}]
+        # Build messages as UserMessage objects
+        messages = [UserMessage(role="user", content=prompt)]
 
         # Generate
         response = await provider_instance.generate_text(
@@ -66,7 +68,7 @@ class AIService:
         )
 
         # Enrich with usage data if available
-        if hasattr(response, 'usage') and response.usage:
+        if hasattr(response, "usage") and response.usage:
             pass  # Usage already in response
         else:
             # TODO: Get usage from provider response if not already included
@@ -96,11 +98,11 @@ class AIService:
         provider_instance = await self._resolve_provider(provider)
         model_name = await self._resolve_model(model, provider_instance)
 
-        # Build messages
-        messages = [{"role": "user", "content": prompt}]
+        # Build messages as UserMessage objects
+        messages = [UserMessage(role="user", content=prompt)]
 
         # Stream
-        stream = await provider_instance.generate_stream(
+        stream = provider_instance.generate_stream(
             messages=messages,
             model=model_name,
         )
@@ -151,14 +153,14 @@ class AIService:
         old_model = self.provider_manager.current_model
 
         # Validate model exists
-        if not await self.provider_manager.is_model_available(model_name=model_name):
+        if not await self.provider_manager.is_model_available(model_name):
             raise AIServiceError(f"Model '{model_name}' is not available")
 
         # Set new model
-        await self.provider_manager.set_model(model_name)
+        success = await self.provider_manager.set_model(model_name)
 
         return OperationResponse(
-            success=True,
+            success=success,
             message=f"Model switched from '{old_model}' to '{model_name}'",
             previous_value=old_model,
             new_value=model_name,
@@ -194,7 +196,7 @@ class AIService:
 
         # Switch model if specified
         if model_name:
-            if not await self.provider_manager.is_model_available(model_name=model_name):
+            if not await self.provider_manager.is_model_available(model_name):
                 raise AIServiceError(f"Model '{model_name}' is not available")
             await self.provider_manager.set_model(model_name)
             changes.append(f"model: '{old_model}' → '{model_name}'")
@@ -291,11 +293,15 @@ class AIService:
         Returns:
             ProviderDetailResponse with provider info and whether it's current
         """
-        target_provider = provider_name or self.provider_manager.current_provider.provider_name
+        target_provider = (
+            provider_name or self.provider_manager.current_provider.provider_name
+        )
 
         info = await self.provider_manager.get_provider_info(target_provider)
         if not info:
-            raise AIServiceError(f"Provider '{target_provider}' not found or not implemented")
+            raise AIServiceError(
+                f"Provider '{target_provider}' not found or not implemented"
+            )
 
         current_provider = self.provider_manager.current_provider.provider_name
 
@@ -304,7 +310,9 @@ class AIService:
             is_current=(target_provider == current_provider),
         )
 
-    async def get_models(self, provider_name: Optional[str] = None) -> ModelListResponse:
+    async def get_models(
+        self, provider_name: Optional[str] = None
+    ) -> ModelListResponse:
         """
         Get list of available models for a provider.
 
@@ -314,10 +322,12 @@ class AIService:
         Returns:
             ModelListResponse with models list and current model
         """
-        target_provider = provider_name or self.provider_manager.current_provider.provider_name
+        target_provider = (
+            provider_name or self.provider_manager.current_provider.provider_name
+        )
         provider_instance = await self._resolve_provider(target_provider)
 
-        models = await provider_instance.get_supports_models()
+        models = provider_instance.get_supports_models()
         current_model = self.provider_manager.current_model
 
         return ModelListResponse(
@@ -377,7 +387,9 @@ class AIService:
             # Validate model exists for this provider
             validated = await provider.validate_model(model_name)
             if not validated:
-                raise AIServiceError(f"Model '{model_name}' is not available for provider")
+                raise AIServiceError(
+                    f"Model '{model_name}' is not available for provider"
+                )
             return validated
         else:
             return self.provider_manager.current_model

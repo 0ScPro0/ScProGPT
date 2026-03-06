@@ -5,8 +5,6 @@ from fastapi.responses import StreamingResponse
 from api.dependencies import get_ai_service
 from schemas.ai import (
     GenerateRequest,
-    ProviderResponseChunk,
-    ProviderResponseStream,
     ProviderResponse,
 )
 from core.exceptions import AuthError, AIServiceError
@@ -85,14 +83,21 @@ async def create_assistant_message_stream(
                 provider=request.provider,
                 model=request.model,
             ):
-                if isinstance(chunk, (ProviderResponseChunk, ProviderResponseStream)):
+                # Serialize chunk to JSON
+                if hasattr(chunk, "model_dump_json"):
                     yield f"data: {chunk.model_dump_json()}\n\n"
+                elif hasattr(chunk, "model_dump"):
+                    yield f"data: {json.dumps(chunk.model_dump())}\n\n"
+                else:
+                    # Fallback for dict
+                    yield f"data: {json.dumps(chunk)}\n\n"
 
         except AIServiceError as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
         except Exception as e:
-            yield f"data: {json.dumps({'error': f'Unexpected error: {str(e)}'})}\n\n"
+            import traceback
+            yield f"data: {json.dumps({'error': f'Unexpected error: {str(e)}', 'traceback': traceback.format_exc()})}\n\n"
 
         finally:
             yield "data: [DONE]\n\n"

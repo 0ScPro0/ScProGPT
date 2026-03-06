@@ -414,6 +414,21 @@ standard = ["email-validator (>=2.0.0)", "fastapi-cli[standard] (>=0.0.8)", "htt
 standard-no-fastapi-cloud-cli = ["email-validator (>=2.0.0)", "fastapi-cli[standard-no-fastapi-cloud-cli] (>=0.0.8)", "httpx (>=0.23.0,<1.0.0)", "jinja2 (>=3.1.5)", "pydantic-extra-types (>=2.0.0)", "pydantic-settings (>=2.0.0)", "python-multipart (>=0.0.18)", "uvicorn[standard] (>=0.12.0)"]
 
 [[package]]
+name = "fastapi-swagger-dark"
+version = "0.0.9"
+description = "FastAPI plugin to add dark theme swagger docs."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "fastapi_swagger_dark-0.0.9-py3-none-any.whl", hash = "sha256:189ae4b8c4b58fc2faa19929517fc81495add85611b3117f650f15135d53f748"},
+    {file = "fastapi_swagger_dark-0.0.9.tar.gz", hash = "sha256:3f981af17ced385e53bd813c4ba08c99c8ca551c1a2957295abbf12c511d97d5"},
+]
+
+[package.extras]
+dev = ["changelog-gen (>=0.12)", "fastapi", "pre-commit (>=3.7.1)", "pytest (>=7.4.3)", "pytest-asyncio (>=0.21)", "pytest-cov (>=4.1.0)", "pytest-httpx (>=0.26.0)", "pytest-random-order (>=1.0)", "rcssmin", "ruff (>=0.6.4)"]
+
+[[package]]
 name = "google"
 version = "3.0.0"
 description = "Python bindings to the Google search engine."
@@ -1497,4 +1512,4 @@ standard = ["colorama (>=0.4) ; sys_platform == \"win32\"", "httptools (>=0.6.3)
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13"
-content-hash = "e32bf2c617a1057ca57d7fe17b362cb78ff87a6c4fb4ef99a4a1143630642171"
+content-hash = "f084fc24d8ed9cc389c601d0a00d578a9aa0629da48a871ec2135e2924804866"

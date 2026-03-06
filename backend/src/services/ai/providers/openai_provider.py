@@ -6,11 +6,15 @@ from core.exceptions import AIGenerationError, AIStreamGenerationError
 from utils.logger import log
 from schemas.ai import (
     AssistantMessage,
+    UserMessage,
     ProviderResponse,
     ProviderResponseStream,
     ProviderResponseChunk,
 )
 from .base_provider import BaseProvider
+
+
+Message = Union[AssistantMessage, UserMessage]
 
 
 class OpenAIProvider(BaseProvider):
@@ -28,7 +32,7 @@ class OpenAIProvider(BaseProvider):
     async def generate_text(
         self,
         *,
-        messages: List[AssistantMessage],
+        messages: List[Message],
         model: str,
         temperature: float = 1,
         max_tokens: int = 4096,
@@ -45,10 +49,13 @@ class OpenAIProvider(BaseProvider):
         Returns:
             provider response as ProviderResponse object
         """
+        # Dump messages to dict
+        dump_messages: list = [m.model_dump() for m in messages]
+
         # Generate response
         try:
             response = await self.client.chat.completions.create(
-                messages=messages,
+                messages=dump_messages,
                 model=model,
                 temperature=temperature,
                 max_tokens=max_tokens,
@@ -69,7 +76,7 @@ class OpenAIProvider(BaseProvider):
     async def generate_stream(
         self,
         *,
-        messages: List[AssistantMessage],
+        messages: List[Message],
         model: str,
         temperature: float = 1,
         max_tokens: int = 4096,

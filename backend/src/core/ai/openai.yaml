@@ -25,6 +25,7 @@ families:
     - gpt-5-pro
 
 supports:
+  - gpt-5
   - gpt-5.2
   - gpt-5.2-pro
   - gpt-5.2-instant
