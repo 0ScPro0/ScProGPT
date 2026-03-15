@@ -1,4 +1,5 @@
 from typing import AsyncGenerator, Union, Optional, List
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import AIServiceError
 from services.base import BaseService
@@ -31,8 +32,9 @@ class AIService:
     - Service status and information
     """
 
-    def __init__(self) -> None:
-        self.provider_manager = ProviderManager()
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
+        self.provider_manager = ProviderManager(session=session)
 
     # ==========================================GENERATION==================================================
 
@@ -112,11 +114,12 @@ class AIService:
     # =========================================PROVIDER MANAGEMENT==========================================
 
     @log
-    async def set_provider(self, provider_name: str) -> OperationResponse:
+    async def set_provider(self, chat_id: int, provider_name: str) -> OperationResponse:
         """
         Set current AI provider.
 
         Args:
+            chat_id: Current chat id
             provider_name: Name of the provider to set as current
 
         Returns:
@@ -130,7 +133,7 @@ class AIService:
             raise AIServiceError(f"Provider '{provider_name}' is not available")
 
         # Set new provider
-        await self.provider_manager.set_provider(provider_name)
+        await self.provider_manager.set_provider(chat_id, provider_name)
 
         return OperationResponse(
             success=True,
@@ -140,7 +143,7 @@ class AIService:
         )
 
     @log
-    async def set_model(self, model_name: str) -> OperationResponse:
+    async def set_model(self, chat_id: int, model_name: str) -> OperationResponse:
         """
         Set current AI model.
 
@@ -153,7 +156,7 @@ class AIService:
         old_model = self.provider_manager.current_model
 
         # Validate model exists
-        if not await self.provider_manager.is_model_available(model_name):
+        if not await self.provider_manager.is_model_available(chat_id, model_name):
             raise AIServiceError(f"Model '{model_name}' is not available")
 
         # Set new model
@@ -167,8 +170,9 @@ class AIService:
         )
 
     @log
-    async def switch_provider_and_model(
+    async def set_provider_and_model(
         self,
+        chat_id: int,
         provider_name: Optional[str] = None,
         model_name: Optional[str] = None,
     ) -> OperationResponse:
@@ -196,7 +200,7 @@ class AIService:
 
         # Switch model if specified
         if model_name:
-            if not await self.provider_manager.is_model_available(model_name):
+            if not await self.provider_manager.is_model_available(chat_id, model_name):
                 raise AIServiceError(f"Model '{model_name}' is not available")
             await self.provider_manager.set_model(model_name)
             changes.append(f"model: '{old_model}' → '{model_name}'")
@@ -346,7 +350,9 @@ class AIService:
 
     # =========================================HELPERS======================================================
 
-    async def _resolve_provider(self, provider_name: Optional[str] = None):
+    async def _resolve_provider(
+        self, chat_id: int, provider_name: Optional[str] = None
+    ):
         """
         Resolve provider name to provider instance.
 
@@ -361,7 +367,7 @@ class AIService:
                 raise AIServiceError(f"Provider '{provider_name}' is not available")
             provider = await self.provider_manager.get_provider(provider_name)
         else:
-            provider = await self.provider_manager.get_current_provider()
+            provider = await self.provider_manager.get_current_provider(chat_id)
 
         if not provider:
             raise AIServiceError("Can not get current provider")

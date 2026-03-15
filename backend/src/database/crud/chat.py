@@ -92,6 +92,44 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
         result = await session.execute(query)
         return result.scalar_one_or_none()
 
+    async def get_chat_provider(
+        self,
+        session: AsyncSession,
+        *,
+        chat_id: int,
+    ) -> str:
+        """
+        Get current chat provider name
+
+        Args:
+            session: Database session
+            chat_id: int
+
+        Returns:
+            Current chat provider name
+        """
+        chat = await self.get_chat(session=session, chat_id=chat_id)
+        return chat.provider
+
+    async def get_chat_model(
+        self,
+        session: AsyncSession,
+        *,
+        chat_id: int,
+    ) -> str:
+        """
+        Get current chat model
+
+        Args:
+            session: Database session
+            chat_id: int
+
+        Returns:
+            Current chat model
+        """
+        chat = await self.get_chat(session=session, chat_id=chat_id)
+        return chat.model
+
     async def create_chat(
         self, session: AsyncSession, *, chat_object: Union[ChatCreate, Dict[str, Any]]
     ) -> Chat:
