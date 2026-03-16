@@ -85,7 +85,7 @@ class ProviderManager:
 
     async def get_current_provider(self, chat_id: int) -> ProviderType:
         """
-        Get current provider.
+        Get current provider object.
 
         Args:
             chat_id: Current chat id
@@ -251,7 +251,7 @@ class ProviderManager:
 
     async def get_current_model(self, chat_id: int) -> Optional[str]:
         """
-        Get current model name from database.
+        Get current model name (str) from database.
 
         Args:
             chat_id: Current chat id
@@ -338,7 +338,7 @@ class ProviderManager:
         except Exception as e:
             raise ProviderManagementError(f"Can not reset to defaults: {e}")
 
-    async def get_status(self) -> ProviderStatus:
+    async def get_status(self, chat_id: int) -> ProviderStatus:
         """
         Get current status of the provider manager.
 
@@ -349,9 +349,11 @@ class ProviderManager:
             - available_providers: set of available provider names
             - registered_providers: list of registered provider names
         """
+        provider = await self.get_current_provider(chat_id=chat_id)
+        model = await self.get_current_model(chat_id=chat_id)
         return ProviderStatus(
-            current_provider=self.current_provider.provider_name,
-            current_model=self.current_model,
+            current_provider=provider.provider_name,
+            current_model=model,
             available_providers=await self.get_available_providers(),
             registered_providers=await self.get_registered_providers(),
         )
