@@ -2,7 +2,8 @@
 import logging
 import functools
 from datetime import datetime
-from typing import Callable, Any
+from typing import Callable, Any, TypeVar, overload, Awaitable, cast
+from typing_extensions import ParamSpec
 import inspect
 import sys
 from pathlib import Path
@@ -21,8 +22,11 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+P = ParamSpec("P")
+R = TypeVar("R")
 
-def log(func: Callable) -> Callable:
+
+def log(func: Callable[P, R]) -> Callable[P, R]:
     """
     Decorator for logging function calls.
 
@@ -39,56 +43,69 @@ def log(func: Callable) -> Callable:
         ...
     """
 
-    @functools.wraps(func)
-    async def async_wrapper(*args, **kwargs):
-        return await _log_wrapper(func, *args, **kwargs)
-
-    @functools.wraps(func)
-    def sync_wrapper(*args, **kwargs):
-        return _log_wrapper(func, *args, **kwargs)
-
-    def _log_wrapper(func: Callable, *args, **kwargs) -> Any:
-        start_time = datetime.now()
-
-        # Log the call
+    def _log_call(
+        func_name: str, module: str, args: tuple, kwargs: dict, start_time: datetime
+    ) -> None:
+        """Log function call start."""
         logger.info(
-            f"START {func.__module__}.{func.__name__} "
+            f"START {module}.{func_name} "
             f"args={args if len(args) < 3 else '(...)'} "
             f"kwargs={kwargs if len(str(kwargs)) < 100 else '(...)'}"
         )
 
+    def _log_success(func_name: str, module: str, duration: float) -> None:
+        """Log successful completion."""
+        logger.info(f"SUCCESS {module}.{func_name} " f"duration={duration:.3f}s")
+
+    def _log_error(
+        func_name: str, module: str, duration: float, error: Exception
+    ) -> None:
+        """Log error."""
+        logger.error(
+            f"ERROR {module}.{func_name} "
+            f"duration={duration:.3f}s "
+            f"error={type(error).__name__}: {str(error)}",
+            exc_info=True,
+        )
+
+    @functools.wraps(func)
+    async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        start_time = datetime.now()
+        _log_call(func.__name__, func.__module__, args, kwargs, start_time)
+
         try:
-            # Execute the function
-            result = func(*args, **kwargs)
-
-            # Log success
+            result = await cast(Awaitable[R], func(*args, **kwargs))
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()
-
-            logger.info(
-                f"SUCCESS {func.__module__}.{func.__name__} "
-                f"duration={duration:.3f}s"
-            )
-
+            _log_success(func.__name__, func.__module__, duration)
             return result
-
         except Exception as e:
-            # Log the error
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()
+            _log_error(func.__name__, func.__module__, duration, e)
+            raise
 
-            logger.error(
-                f"ERROR {func.__module__}.{func.__name__} "
-                f"duration={duration:.3f}s "
-                f"error={type(e).__name__}: {str(e)}",
-                exc_info=True,  # Full traceback
-            )
-            raise  # Re-raise the error
+    @functools.wraps(func)
+    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        start_time = datetime.now()
+        _log_call(func.__name__, func.__module__, args, kwargs, start_time)
+
+        try:
+            result = func(*args, **kwargs)
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            _log_success(func.__name__, func.__module__, duration)
+            return result
+        except Exception as e:
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            _log_error(func.__name__, func.__module__, duration, e)
+            raise
 
     # Return the appropriate wrapper based on the function type
     if inspect.iscoroutinefunction(func):
-        return async_wrapper
-    return sync_wrapper
+        return async_wrapper  # type: ignore[return-value]
+    return sync_wrapper  # type: ignore[return-value]
 
 
 def log_database_queries(func: Callable) -> Callable:
