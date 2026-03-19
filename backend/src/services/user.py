@@ -24,7 +24,7 @@ from services.base import BaseService
 
 
 class UserService(BaseService):
-    """Service for authentication and authorization"""
+    """Service for working with User"""
 
     def __init__(self, session: AsyncSession):
         super().__init__(session=session, crud=user_crud)
