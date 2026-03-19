@@ -11,7 +11,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="AI Chat API", lifespan=lifespan)
+app = FastAPI(title="ScProGPT", lifespan=lifespan)
 app.include_router(router)
 
 if __name__ == "__main__":
