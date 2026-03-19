@@ -29,6 +29,7 @@ dependencies = [
     "google (>=3.0.0,<4.0.0)",
     "pyyaml (>=6.0.3,<7.0.0)",
     "fastapi-swagger-dark (>=0.0.9,<0.0.10)",
+    "typing-extensions (>=4.0.0)",
 ]
 
 
