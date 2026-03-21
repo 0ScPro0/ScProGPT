@@ -45,7 +45,7 @@ class BaseProvider(ABC):
             return True
         return False
 
-    async def get_supports_models(self) -> List[str]:
+    async def get_supported_models(self) -> List[str]:
         """
         Get list of currently supported models.
 
@@ -81,11 +81,11 @@ class BaseProvider(ABC):
             Model name or None if has not been validated
         """
         stripped_model = model.strip("/")
-        
+
         # Check in supports_models list (flat list of model names)
         if stripped_model in self.supports_models:
             return stripped_model
-        
+
         return None
 
     @log
