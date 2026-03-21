@@ -194,7 +194,7 @@ class ProviderManager:
         return ProviderInfo(
             name=provider.provider_name,
             prefix=provider.prefix,
-            supported_models=provider.get_supports_models(),
+            supported_models=provider.get_supported_models(),
             current_model=model,
         )
 

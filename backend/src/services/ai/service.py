@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.exceptions import AIServiceError
 from services.base import BaseService
 from services.ai.providers import OpenAIProvider
-from services.ai.manager import ProviderManager
+from services.ai.manager import ProviderType, ProviderManager
 from schemas.ai import (
     ProviderResponse,
     ProviderResponseStream,
@@ -126,7 +126,7 @@ class AIService:
             OperationResponse with success status and values
         """
         # Get current provider name for response
-        old_provider = self.provider_manager.current_provider.provider_name
+        old_provider = await self.provider_manager.get_current_provider(chat_id)
 
         # Validate provider exists
         if not await self.provider_manager.is_provider_available(provider_name):
@@ -153,14 +153,14 @@ class AIService:
         Returns:
             OperationResponse with success status and values
         """
-        old_model = self.provider_manager.current_model
+        old_model = await self.provider_manager.get_current_model(chat_id)
 
         # Validate model exists
         if not await self.provider_manager.is_model_available(chat_id, model_name):
             raise AIServiceError(f"Model '{model_name}' is not available")
 
         # Set new model
-        success = await self.provider_manager.set_model(model_name)
+        success = await self.provider_manager.set_model(chat_id, model_name)
 
         return OperationResponse(
             success=success,
@@ -186,8 +186,8 @@ class AIService:
         Returns:
             OperationResponse with success status and values
         """
-        old_provider = self.provider_manager.current_provider.provider_name
-        old_model = self.provider_manager.current_model
+        old_provider = await self.provider_manager.get_current_provider(chat_id)
+        old_model = await self.provider_manager.get_current_model(chat_id)
 
         changes = []
 
@@ -195,14 +195,14 @@ class AIService:
         if provider_name:
             if not await self.provider_manager.is_provider_available(provider_name):
                 raise AIServiceError(f"Provider '{provider_name}' is not available")
-            await self.provider_manager.set_provider(provider_name)
+            await self.provider_manager.set_provider(chat_id, provider_name)
             changes.append(f"provider: '{old_provider}' → '{provider_name}'")
 
         # Switch model if specified
         if model_name:
             if not await self.provider_manager.is_model_available(chat_id, model_name):
                 raise AIServiceError(f"Model '{model_name}' is not available")
-            await self.provider_manager.set_model(model_name)
+            await self.provider_manager.set_model(chat_id, model_name)
             changes.append(f"model: '{old_model}' → '{model_name}'")
 
         if not changes:
@@ -221,20 +221,23 @@ class AIService:
         )
 
     @log
-    async def reset_to_defaults(self) -> OperationResponse:
+    async def reset_to_defaults(self, chat_id: int) -> OperationResponse:
         """
         Reset provider and model to default values from settings.
+
+        Args:
+            chat_id: current chat id
 
         Returns:
             OperationResponse with success status and values
         """
-        old_provider = self.provider_manager.current_provider.provider_name
-        old_model = self.provider_manager.current_model
+        old_provider = await self.provider_manager.get_current_provider(chat_id)
+        old_model = await self.provider_manager.get_current_model(chat_id)
 
-        await self.provider_manager.reset_to_defaults()
+        await self.provider_manager.reset_to_defaults(chat_id)
 
-        new_provider = self.provider_manager.current_provider.provider_name
-        new_model = self.provider_manager.current_model
+        new_provider = await self.provider_manager.get_current_provider(chat_id)
+        new_model = await self.provider_manager.get_current_model(chat_id)
 
         return OperationResponse(
             success=True,
@@ -245,14 +248,14 @@ class AIService:
 
     # =========================================INFORMATION==================================================
 
-    async def get_status(self) -> AIServiceStatusResponse:
+    async def get_status(self, chat_id: int) -> AIServiceStatusResponse:
         """
         Get AI service status and configuration.
 
         Returns:
             AIServiceStatusResponse with current state
         """
-        status = await self.provider_manager.get_status()
+        status = await self.provider_manager.get_status(chat_id)
 
         # Check if service is configured (has valid provider and model)
         is_configured = (
@@ -269,7 +272,7 @@ class AIService:
             is_configured=is_configured,
         )
 
-    async def get_providers(self) -> ProviderListResponse:
+    async def get_providers(self, chat_id: int) -> ProviderListResponse:
         """
         Get list of all available providers.
 
@@ -277,7 +280,7 @@ class AIService:
             ProviderListResponse with providers list and current provider
         """
         providers = await self.provider_manager.get_available_providers()
-        current = self.provider_manager.current_provider.provider_name
+        current = await self.provider_manager.get_current_provider(chat_id)
 
         return ProviderListResponse(
             providers=sorted(list(providers)),
@@ -286,6 +289,7 @@ class AIService:
 
     async def get_provider_info(
         self,
+        chat_id: int,
         provider_name: Optional[str] = None,
     ) -> ProviderDetailResponse:
         """
@@ -297,17 +301,15 @@ class AIService:
         Returns:
             ProviderDetailResponse with provider info and whether it's current
         """
-        target_provider = (
-            provider_name or self.provider_manager.current_provider.provider_name
-        )
+        target_provider = provider_name or await self.get_current_provider_name(chat_id)
 
-        info = await self.provider_manager.get_provider_info(target_provider)
+        info = await self.provider_manager.get_provider_info(chat_id, target_provider)
         if not info:
             raise AIServiceError(
                 f"Provider '{target_provider}' not found or not implemented"
             )
 
-        current_provider = self.provider_manager.current_provider.provider_name
+        current_provider = await self.provider_manager.get_current_provider(chat_id)
 
         return ProviderDetailResponse(
             provider=info,
@@ -315,7 +317,7 @@ class AIService:
         )
 
     async def get_models(
-        self, provider_name: Optional[str] = None
+        self, chat_id: int, provider_name: Optional[str] = None
     ) -> ModelListResponse:
         """
         Get list of available models for a provider.
@@ -326,13 +328,11 @@ class AIService:
         Returns:
             ModelListResponse with models list and current model
         """
-        target_provider = (
-            provider_name or self.provider_manager.current_provider.provider_name
-        )
-        provider_instance = await self._resolve_provider(target_provider)
+        target_provider = provider_name or await self.get_current_provider_name(chat_id)
+        provider_instance = await self._resolve_provider(chat_id, target_provider)
 
-        models = provider_instance.get_supports_models()
-        current_model = self.provider_manager.current_model
+        models = provider_instance.get_supported_models()
+        current_model = self.provider_manager.get_current_model(chat_id)
 
         return ModelListResponse(
             provider=target_provider,
@@ -340,13 +340,14 @@ class AIService:
             current_model=current_model,
         )
 
-    async def get_current_provider_name(self) -> str:
+    async def get_current_provider_name(self, chat_id: int) -> str:
         """Get current provider name."""
-        return self.provider_manager.current_provider.provider_name
+        provider = await self.provider_manager.get_current_provider(chat_id)
+        return provider.provider_name
 
-    async def get_current_model_name(self) -> str:
+    async def get_current_model_name(self, chat_id: int) -> Optional[str]:
         """Get current model name."""
-        return self.provider_manager.current_model
+        return await self.provider_manager.get_current_model(chat_id)
 
     # =========================================HELPERS======================================================
 
@@ -365,7 +366,7 @@ class AIService:
         if provider_name:
             if not await self.provider_manager.is_provider_available(provider_name):
                 raise AIServiceError(f"Provider '{provider_name}' is not available")
-            provider = await self.provider_manager.get_provider(provider_name)
+            provider = await self.provider_manager.get_provider(chat_id, provider_name)
         else:
             provider = await self.provider_manager.get_current_provider(chat_id)
 
@@ -376,9 +377,10 @@ class AIService:
 
     async def _resolve_model(
         self,
+        chat_id: int,
         model_name: Optional[str] = None,
-        provider=None,
-    ) -> str:
+        provider: Optional[ProviderType] = None,
+    ) -> Optional[str]:
         """
         Resolve model name, validating against provider.
 
@@ -389,6 +391,8 @@ class AIService:
         Returns:
             Validated model name
         """
+        if not provider:
+            provider = await self.provider_manager.get_current_provider(chat_id)
         if model_name:
             # Validate model exists for this provider
             validated = await provider.validate_model(model_name)
@@ -398,4 +402,4 @@ class AIService:
                 )
             return validated
         else:
-            return self.provider_manager.current_model
+            return await self.provider_manager.get_current_model(chat_id)
