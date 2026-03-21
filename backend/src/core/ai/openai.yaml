@@ -24,7 +24,7 @@ families:
     - gpt-5-nano
     - gpt-5-pro
 
-supports:
+supported:
   - gpt-5
   - gpt-5.2
   - gpt-5.2-pro
