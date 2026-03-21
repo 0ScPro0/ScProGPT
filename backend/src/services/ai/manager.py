@@ -58,7 +58,9 @@ class ProviderManager:
 
     # =========================================PROVIDER MANAGEMENT====================================================
 
-    async def get_provider(self, provider_name: str = None) -> ProviderType:
+    async def get_provider(
+        self, chat_id: int, provider_name: str = None
+    ) -> ProviderType:
         """
         Get provider object by name, or current if not specified.
 
@@ -72,14 +74,18 @@ class ProviderManager:
             NotFoundError: If provider is not available or not found.
         """
         # Check provider is available
-        name = provider_name or self.current_provider.provider_name
-        if not self.is_provider_available(name):
-            raise NotFoundError(f"Unavailabe provider: {name}")
+        provider_name = await chat_crud.get_chat_provider(
+            session=self.session, chat_id=chat_id
+        )
+        if not self.is_provider_available(provider_name):
+            raise NotFoundError(f"Unavailabe provider: {provider_name}")
 
         # Trying to find provider
-        provider = self.providers.get(name)
+        provider = self.providers.get(provider_name)
         if not provider:
-            raise NotFoundError(f"Provider not found or can not be assign: {name}")
+            raise NotFoundError(
+                f"Provider not found or can not be assign: {provider_name}"
+            )
 
         return provider
 
@@ -167,7 +173,9 @@ class ProviderManager:
         """
         return list(self.providers.keys())
 
-    async def get_provider_info(self, provider_name: str) -> Optional[ProviderInfo]:
+    async def get_provider_info(
+        self, chat_id: int, provider_name: str
+    ) -> Optional[ProviderInfo]:
         """
         Get information about a specific provider.
 
@@ -181,11 +189,13 @@ class ProviderManager:
         if not provider or isinstance(provider, NotImplementedProvider):
             return None
 
+        model = await self.get_current_model(chat_id=chat_id)
+
         return ProviderInfo(
             name=provider.provider_name,
             prefix=provider.prefix,
             supported_models=provider.get_supports_models(),
-            current_model=self.current_model,
+            current_model=model,
         )
 
     async def _find_provider(self, provider_name: str) -> Optional[ProviderType]:
@@ -321,7 +331,7 @@ class ProviderManager:
 
     # =========================================OTHER====================================================
     @log
-    async def reset_to_defaults(self) -> bool:
+    async def reset_to_defaults(self, chat_id: int) -> bool:
         """
         Reset current provider and model to default values.
 
@@ -329,12 +339,24 @@ class ProviderManager:
             True if reset was successful.
         """
         try:
-            self.current_provider = self.providers.get(
+            # Get default provider and model
+            provider = self.providers.get(
                 settings.ai.default_provider,
                 NotImplementedProvider(settings.ai.default_provider),
             )
-            self.current_model = settings.ai.default_model
+            model = settings.ai.default_model
+
+            # Set provider
+            await self.set_provider(
+                chat_id=chat_id, provider_name=provider.provider_name
+            )
+
+            # Set model
+            await self.set_model(chat_id=chat_id, model_name=model)
+
+            # Return
             return True
+
         except Exception as e:
             raise ProviderManagementError(f"Can not reset to defaults: {e}")
 
