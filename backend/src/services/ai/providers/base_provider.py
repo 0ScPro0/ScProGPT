@@ -12,7 +12,7 @@ Message = Union[AssistantMessage, UserMessage]
 class BaseProvider(ABC):
     def __init__(self) -> None:
         self._available_models: Dict[str, str] = {}
-        self.supports_models: List[str] = []
+        self.supported_models: List[str] = []
         self.provider_name: str = "base"
         self.prefix: str = "openai/v1"
         self.requires_v1_prefix: bool = False
@@ -41,7 +41,7 @@ class BaseProvider(ABC):
         Returns:
             True or False if model is not supported
         """
-        if model in self.supports_models:
+        if model in self.supported_models:
             return True
         return False
 
@@ -52,7 +52,7 @@ class BaseProvider(ABC):
         Returns:
             List of supported model names
         """
-        return self.supports_models.copy()
+        return self.supported_models.copy()
 
     @log
     async def add_supports_model(self, model: str) -> bool:
@@ -66,7 +66,7 @@ class BaseProvider(ABC):
             True or False if model not available
         """
         if self.validate_model(model):
-            self.supports_models.append(model)
+            self.supported_models.append(model)
             return True
         return False
 
@@ -82,8 +82,8 @@ class BaseProvider(ABC):
         """
         stripped_model = model.strip("/")
 
-        # Check in supports_models list (flat list of model names)
-        if stripped_model in self.supports_models:
+        # Check in supported_models list (flat list of model names)
+        if stripped_model in self.supported_models:
             return stripped_model
 
         return None

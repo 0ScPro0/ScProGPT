@@ -26,7 +26,7 @@ class OpenAIProvider(BaseProvider):
         self.base_url = settings.ai.base_url + self.prefix
         self.client = AsyncOpenAI(api_key=settings.ai.api_key, base_url=self.base_url)
         self._available_models = settings.ai.openai.models
-        self.supports_models = settings.ai.openai.models["supports"]
+        self.supported_models = settings.ai.openai.models["supports"]
 
     @log
     async def generate_text(
