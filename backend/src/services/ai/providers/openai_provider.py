@@ -104,6 +104,7 @@ class OpenAIProvider(BaseProvider):
 
         # Generate response
         content = ""
+        usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
         try:
             stream = await self.client.chat.completions.create(
                 messages=dump_messages,
@@ -115,9 +116,15 @@ class OpenAIProvider(BaseProvider):
 
             # Yield content
             async for chunk in stream:
+                # If chunk has no choices, it's probably meaning that it's the last chunk
+                # or that was unexpected behavior and it will throw an exception
                 if not chunk.choices:
+                    # If chunk has usage, it's meaning that it's the last chunk so update usage
+                    if chunk.usage:
+                        usage = chunk.usage
                     continue
 
+                # Get delta
                 delta = chunk.choices[0].delta
                 if delta and delta.content:
                     # Add content
@@ -136,10 +143,11 @@ class OpenAIProvider(BaseProvider):
                 content=f"\n\n[ERROR: {str(e)}]",
             )
 
-        # Return full response
+        # Return full response as a last chunk to comfortable working with database (serialization)
         response = ProviderResponseStream(
             provider=self.provider_name,
             model=model,
             message=AssistantMessage(content=content),
+            usage=usage,
         )
         yield response
