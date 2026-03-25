@@ -50,7 +50,7 @@ class MessageUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")  # Prevent extra fields
 
 
-class MessageResponse(BaseMessage):
+class MessageSchema(BaseMessage):
     """Schema for message response with all database fields"""
 
     id: int = Field(..., description="Unique message identifier")
@@ -77,3 +77,9 @@ class MessageResponse(BaseMessage):
             }
         },
     )
+
+
+class MessageResponse(MessageSchema):
+    """Abstract schema for message response with all database fields. Extends MessageSchema"""
+
+    pass

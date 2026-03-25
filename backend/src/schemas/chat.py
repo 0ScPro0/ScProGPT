@@ -26,7 +26,7 @@ class BaseChat(BaseModel):
 
 
 class ChatCreate(BaseChat):
-    pass
+    user_id: int = Field(..., description="ID of chat owner")
 
 
 class ChatUpdate(BaseModel):
@@ -76,7 +76,7 @@ class ChatUpdate(BaseModel):
     )
 
 
-class ChatResponse(BaseChat):
+class ChatSchema(BaseChat):
     id: int = Field(..., description="Unique chat identifier")
     user_id: int = Field(..., description="ID of chat owner")
 
@@ -114,3 +114,7 @@ class ChatResponse(BaseChat):
             }
         },
     )
+
+
+class ChatResponse(ChatSchema):
+    pass
