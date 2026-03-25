@@ -28,11 +28,12 @@ from schemas.user import UserSchema, UserResponse
 from services.base import BaseService
 
 
-class AuthService(BaseService):
+class AuthService:
     """Service for authentication and authorization"""
 
-    def __init__(self, session: AsyncSession):
-        super().__init__(session=session, crud=user_crud)
+    def __init__(self, session: AsyncSession, user_crud: CRUDUser):
+        self.session = session
+        self.user_crud = user_crud
 
     @log
     async def signup(self, user: SignUpRequest):
@@ -49,7 +50,7 @@ class AuthService(BaseService):
             User: Created user
         """
         # Check if user with the same email already exists
-        if await user_crud.get_by_email(self.session, user.email):
+        if await self.user_crud.get_by_email(self.session, user.email):
             raise AuthError("User with this email already exists")
 
         # Hash password
@@ -65,7 +66,7 @@ class AuthService(BaseService):
         }
 
         # Create user in database
-        user_object = await user_crud.create_user(
+        user_object = await self.user_crud.create_user(
             session=self.session, user_object=user_create_data
         )
 
@@ -83,7 +84,7 @@ class AuthService(BaseService):
             refresh_token_expires_at = datetime.fromtimestamp(
                 refresh_token_payload["exp"], tz=timezone.utc
             )
-            await user_crud.update_refresh_token(
+            await self.user_crud.update_refresh_token(
                 session=self.session,
                 user_id=user_object.id,
                 refresh_token=refresh_token,
@@ -114,7 +115,7 @@ class AuthService(BaseService):
             dict: User data and tokens
         """
         # Get user by email
-        user_object = await user_crud.get_by_email(self.session, user.email)
+        user_object = await self.user_crud.get_by_email(self.session, user.email)
         if not user_object:
             raise AuthError("Invalid credentials")
 
@@ -123,7 +124,7 @@ class AuthService(BaseService):
             raise AuthError("Invalid credentials")
 
         # Check if user is active
-        if not await user_crud.is_active(self.session, user_id=user_object.id):
+        if not await self.user_crud.is_active(self.session, user_id=user_object.id):
             raise AuthError("User is deactivated")
 
         # Create tokens
@@ -142,7 +143,7 @@ class AuthService(BaseService):
             refresh_token_expires_at = datetime.fromtimestamp(
                 refresh_token_payload["exp"], tz=timezone.utc
             )
-            await user_crud.update_refresh_token(
+            await self.user_crud.update_refresh_token(
                 session=self.session,
                 user_id=user_object.id,
                 refresh_token=refresh_token,
@@ -214,12 +215,12 @@ class AuthService(BaseService):
             raise AuthError("Invalid refresh token")
 
         # Get user from database
-        user_object = await user_crud.get(self.session, user_id)
+        user_object = await self.user_crud.get(self.session, user_id)
         if not user_object:
             raise AuthError("User not found")
 
         # Check if user is active
-        if not await user_crud.is_active(self.session, user_id=user_object.id):
+        if not await self.user_crud.is_active(self.session, user_id=user_object.id):
             raise AuthError("User is deactivated")
 
         # Verify refresh token matches stored token
@@ -255,6 +256,6 @@ class AuthService(BaseService):
             bool: True if successful
         """
         # Clear refresh token in database
-        await user_crud.clear_refresh_token(session=self.session, user_id=user_id)
+        await self.user_crud.clear_refresh_token(session=self.session, user_id=user_id)
 
         return True
