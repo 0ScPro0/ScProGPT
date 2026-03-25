@@ -75,6 +75,7 @@ class OpenAIProvider(BaseProvider):
                 "completion_tokens": response.usage.completion_tokens,
                 "total_tokens": response.usage.total_tokens,
             },
+            cost=0.0,  # TODO calculate cost
         )
 
     @log
@@ -153,5 +154,6 @@ class OpenAIProvider(BaseProvider):
             model=model,
             message=AssistantMessage(content=content),
             usage=usage,
+            cost=0.0,  # TODO calculate cost
         )
         yield response

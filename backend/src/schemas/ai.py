@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Literal, Optional, Callable, Dict, Any
+from typing import List, Literal, Optional, Dict
 from pydantic import BaseModel, Field
 
 
@@ -24,6 +24,7 @@ class ProviderResponse(BaseModel):
     usage: Dict[str, int] = Field(
         default={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
     )
+    cost: float = Field(default=0.0)
 
 
 class ProviderResponseStream(ProviderResponse):
@@ -63,6 +64,8 @@ class GenerateRequest(BaseModel):
     model: Optional[str] = Field(
         None, description="Model name (uses current if not specified)"
     )
+    temperature: float = Field(1, ge=0.1, le=2)
+    max_tokens: int = Field(4096, ge=4096, le=128000)
 
 
 class SetProviderRequest(BaseModel):

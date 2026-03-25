@@ -41,10 +41,13 @@ class AIService:
     @log
     async def generate_text(
         self,
+        *,
         chat_id: int,
-        prompt: str,
         provider: Optional[str] = None,
         model: Optional[str] = None,
+        messages: List[Union[UserMessage, AssistantMessage]],
+        temperature: float = 1,
+        max_tokens: int = 4096,
     ) -> ProviderResponse:
         """
         Generate text response from AI provider.
@@ -66,13 +69,12 @@ class AIService:
             chat_id=chat_id, model_name=model, provider=provider_instance
         )
 
-        # Build messages as UserMessage objects
-        messages = [UserMessage(role="user", content=prompt)]
-
         # Generate
         response = await provider_instance.generate_text(
             messages=messages,
             model=model_name,
+            temperature=temperature,
+            max_tokens=max_tokens,
         )
 
         # Enrich with usage data if available
@@ -87,10 +89,13 @@ class AIService:
     @log
     async def generate_stream(
         self,
+        *,
         chat_id: int,
-        prompt: str,
         provider: Optional[str] = None,
         model: Optional[str] = None,
+        messages: List[Union[UserMessage, AssistantMessage]],
+        temperature: float = 1,
+        max_tokens: int = 4096,
     ) -> AsyncGenerator[Union[ProviderResponseChunk, ProviderResponseStream], None]:
         """
         Generate streaming text response from AI provider.
@@ -112,13 +117,12 @@ class AIService:
             chat_id=chat_id, model_name=model, provider=provider_instance
         )
 
-        # Build messages as UserMessage objects
-        messages = [UserMessage(role="user", content=prompt)]
-
         # Stream
         stream = provider_instance.generate_stream(
             messages=messages,
             model=model_name,
+            temperature=temperature,
+            max_tokens=max_tokens,
         )
         async for chunk in stream:
             yield chunk
