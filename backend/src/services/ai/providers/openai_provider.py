@@ -70,6 +70,11 @@ class OpenAIProvider(BaseProvider):
             message=AssistantMessage(
                 content=response.choices[0].message.content,
             ),
+            usage={
+                "prompt_tokens": response.usage.prompt_tokens,
+                "completion_tokens": response.usage.completion_tokens,
+                "total_tokens": response.usage.total_tokens,
+            },
         )
 
     @log
