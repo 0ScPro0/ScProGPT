@@ -19,3 +19,13 @@ class ChatService(BaseService[Chat, ChatCreate, ChatUpdate, CRUDChat]):
     async def get_chat(self, chat_id: int) -> Chat:
         """Get a chat by id"""
         return await self.crud.get(self.session, chat_id)
+
+    async def get_user_chats(self, user_id: int) -> List[Chat]:
+        """Get all chats for a user"""
+        return await self.crud.get_user_chats(self.session, user_id=user_id)
+
+    async def get_user_pinned_chats(self, user_id: int) -> List[Chat]:
+        """Get all pinned chats for a user"""
+        return await self.crud.get_user_chats(
+            self.session, user_id=user_id, pinned_only=True
+        )

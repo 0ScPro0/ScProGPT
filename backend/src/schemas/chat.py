@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -95,8 +96,8 @@ class ChatSchema(BaseChat):
     is_archived: Optional[bool] = Field(None, description="Archive status")
 
     # Timestamps
-    created_at: str = Field(..., description="Chat creation timestamp")
-    updated_at: str = Field(..., description="Last update timestamp")
+    created_at: datetime = Field(..., description="Chat creation timestamp")
+    updated_at: datetime = Field(..., description="Last update timestamp")
     deleted_at: Optional[str] = Field(None, description="Deletion timestamp")
 
     model_config = ConfigDict(
@@ -117,4 +118,5 @@ class ChatSchema(BaseChat):
 
 
 class ChatResponse(ChatSchema):
+    position: int = Field(..., description="Chat position in user's chat list")
     pass
