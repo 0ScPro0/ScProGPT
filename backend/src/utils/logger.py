@@ -38,9 +38,11 @@ def log(func: Callable[P, R]) -> Callable[P, R]:
     - Execution time
 
     Usage:
-    @log
-    async def my_function(arg1, arg2):
-        ...
+        ```python
+        @log
+        async def my_function(arg1, arg2):
+            ...
+        ```
     """
 
     def _log_call(
