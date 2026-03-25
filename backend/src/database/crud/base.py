@@ -36,7 +36,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return result.scalar_one_or_none()
 
     @log_database_queries
-    async def get_multy(
+    async def get_many(
         self,
         session: AsyncSession,
         *,
