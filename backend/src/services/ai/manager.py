@@ -65,6 +65,7 @@ class ProviderManager:
         Get provider object by name, or current if not specified.
 
         Args:
+            chat_id: Current chat id
             provider_name: Name of the provider to retrieve. If None, uses current provider.
 
         Returns:
@@ -180,6 +181,7 @@ class ProviderManager:
         Get information about a specific provider.
 
         Args:
+            chat_id: Current chat id
             provider_name: Name of the provider to get info for.
 
         Returns:
@@ -267,7 +269,7 @@ class ProviderManager:
             chat_id: Current chat id
 
         Returns:
-            Current model name.
+            Current model name, or None if not set.
         """
         model = await self.chat_crud.get_chat_model(
             session=self.session, chat_id=chat_id
@@ -334,6 +336,9 @@ class ProviderManager:
     async def reset_to_defaults(self, chat_id: int) -> bool:
         """
         Reset current provider and model to default values.
+
+        Args:
+            chat_id: Current chat id
 
         Returns:
             True if reset was successful.

@@ -50,6 +50,7 @@ class AIService:
         Generate text response from AI provider.
 
         Args:
+            chat_id: Current chat id
             prompt: User prompt for generation
             provider: Optional provider name (uses current if not specified)
             model: Optional model name (uses current if not specified)
@@ -95,6 +96,7 @@ class AIService:
         Generate streaming text response from AI provider.
 
         Args:
+            chat_id: Current chat id
             prompt: User prompt for generation
             provider: Optional provider name (uses current if not specified)
             model: Optional model name (uses current if not specified)
@@ -124,7 +126,9 @@ class AIService:
     # =========================================PROVIDER MANAGEMENT==========================================
 
     @log
-    async def set_provider(self, chat_id: int, provider_name: str) -> OperationResponse:
+    async def set_provider(
+        self, *, chat_id: int, provider_name: str
+    ) -> OperationResponse:
         """
         Set current AI provider.
 
@@ -153,7 +157,7 @@ class AIService:
         )
 
     @log
-    async def set_model(self, chat_id: int, model_name: str) -> OperationResponse:
+    async def set_model(self, *, chat_id: int, model_name: str) -> OperationResponse:
         """
         Set current AI model.
 
@@ -262,6 +266,9 @@ class AIService:
         """
         Get AI service status and configuration.
 
+        Args:
+            chat_id: Current chat id
+
         Returns:
             AIServiceStatusResponse with current state
         """
@@ -285,6 +292,9 @@ class AIService:
     async def get_providers(self, chat_id: int) -> ProviderListResponse:
         """
         Get list of all available providers.
+
+        Args:
+            chat_id: Current chat id
 
         Returns:
             ProviderListResponse with providers list and current provider
@@ -333,6 +343,7 @@ class AIService:
         Get list of available models for a provider.
 
         Args:
+            chat_id: Current chat id
             provider_name: Optional provider name (uses current if not specified)
 
         Returns:
@@ -353,12 +364,28 @@ class AIService:
         )
 
     async def get_current_provider_name(self, chat_id: int) -> str:
-        """Get current provider name."""
+        """
+        Get current provider name.
+
+        Args:
+            chat_id: Current chat id
+
+        Returns:
+            Current provider name
+        """
         provider = await self.provider_manager.get_current_provider(chat_id)
         return provider.provider_name
 
     async def get_current_model_name(self, chat_id: int) -> Optional[str]:
-        """Get current model name."""
+        """
+        Get current model name.
+
+        Args:
+            chat_id: Current chat id
+
+        Returns:
+            Current model name
+        """
         return await self.provider_manager.get_current_model(chat_id)
 
     # =========================================HELPERS======================================================
