@@ -1,5 +1,6 @@
 import json
-from fastapi import APIRouter, Depends, HTTPException
+import traceback
+from fastapi import APIRouter, Depends, HTTPException, Path
 from fastapi.responses import StreamingResponse
 
 from api.dependencies import get_ai_service
@@ -8,10 +9,11 @@ from schemas.ai import (
     ProviderResponse,
 )
 from core.exceptions import AuthError, AIServiceError
-from database import User
 from core.security import get_current_user
+from database import User
 from services.ai.service import AIService
-from utils.logger import log
+from utils.logger import logger, log
+from utils.serializator import serialize_model_to_json
 
 router = APIRouter(prefix="/assistant", tags=["messages"])
 
@@ -25,13 +27,13 @@ router = APIRouter(prefix="/assistant", tags=["messages"])
 @log
 async def create_assistant_message(
     request: GenerateRequest,
-    chat_id: int,
+    chat_id: int = Path(..., description="The ID of the chat"),
     ai_service: AIService = Depends(get_ai_service),
     current_user: User = Depends(get_current_user),
 ) -> ProviderResponse:
     """
     Create an assistant message by generating text from AI provider.
-    
+
     - **chat_id**: ID of the chat conversation
     - **prompt**: User prompt for generation
     - **provider**: Optional provider override
@@ -42,6 +44,7 @@ async def create_assistant_message(
 
     try:
         response = await ai_service.generate_text(
+            chat_id=chat_id,
             prompt=request.prompt,
             provider=request.provider,
             model=request.model,
@@ -59,18 +62,18 @@ async def create_assistant_message(
 @log
 async def create_assistant_message_stream(
     request: GenerateRequest,
-    chat_id: int,
+    chat_id: int = Path(..., description="The ID of the chat"),
     ai_service: AIService = Depends(get_ai_service),
     current_user: User = Depends(get_current_user),
 ):
     """
     Create an assistant message stream by generating text token by token.
-    
+
     - **chat_id**: ID of the chat conversation
     - **prompt**: User prompt for generation
     - **provider**: Optional provider override
     - **model**: Optional model override
-    
+
     Returns SSE stream with chunks.
     """
     if not current_user:
@@ -79,24 +82,18 @@ async def create_assistant_message_stream(
     async def sse_stream():
         try:
             async for chunk in ai_service.generate_stream(
+                chat_id=chat_id,
                 prompt=request.prompt,
                 provider=request.provider,
                 model=request.model,
             ):
                 # Serialize chunk to JSON
-                if hasattr(chunk, "model_dump_json"):
-                    yield f"data: {chunk.model_dump_json()}\n\n"
-                elif hasattr(chunk, "model_dump"):
-                    yield f"data: {json.dumps(chunk.model_dump())}\n\n"
-                else:
-                    # Fallback for dict
-                    yield f"data: {json.dumps(chunk)}\n\n"
+                yield await serialize_model_to_json(chunk)
 
         except AIServiceError as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
         except Exception as e:
-            import traceback
             yield f"data: {json.dumps({'error': f'Unexpected error: {str(e)}', 'traceback': traceback.format_exc()})}\n\n"
 
         finally:

@@ -121,7 +121,11 @@ class OpenAIProvider(BaseProvider):
                 if not chunk.choices:
                     # If chunk has usage, it's meaning that it's the last chunk so update usage
                     if chunk.usage:
-                        usage = chunk.usage
+                        usage = {
+                            "prompt_tokens": chunk.usage.prompt_tokens,
+                            "completion_tokens": chunk.usage.completion_tokens,
+                            "total_tokens": chunk.usage.total_tokens,
+                        }
                     continue
 
                 # Get delta

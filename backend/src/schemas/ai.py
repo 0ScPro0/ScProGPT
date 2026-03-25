@@ -34,6 +34,7 @@ class ProviderResponseChunk(BaseModel):
     provider: str = Field(default="openai")
     model: str = Field(default="gpt-4o-mini")
     content: str = Field(default="")
+    usage: Dict = Field(default={})
 
 
 # ============================================PROVIDER=======================================================

@@ -59,7 +59,7 @@ class ProviderManager:
     # =========================================PROVIDER MANAGEMENT====================================================
 
     async def get_provider(
-        self, chat_id: int, provider_name: str = None
+        self, *, chat_id: int, provider_name: str = None
     ) -> ProviderType:
         """
         Get provider object by name, or current if not specified.
@@ -77,7 +77,7 @@ class ProviderManager:
         provider_name = await chat_crud.get_chat_provider(
             session=self.session, chat_id=chat_id
         )
-        if not self.is_provider_available(provider_name):
+        if not await self.is_provider_available(provider_name):
             raise NotFoundError(f"Unavailabe provider: {provider_name}")
 
         # Trying to find provider
@@ -99,10 +99,10 @@ class ProviderManager:
         Returns:
             Current provider object.
         """
-        provider_name = self.chat_crud.get_chat_provider(
+        provider_name = await self.chat_crud.get_chat_provider(
             session=self.session, chat_id=chat_id
         )
-        return await self.get_provider(provider_name)
+        return await self.get_provider(chat_id=chat_id, provider_name=provider_name)
 
     @log
     async def set_provider(self, chat_id: int, provider_name: str) -> bool:
@@ -121,7 +121,7 @@ class ProviderManager:
             ProviderManagmentError: If provider cannot be set.
         """
         # Check provider is available
-        if not self.is_provider_available(provider_name):
+        if not await self.is_provider_available(provider_name):
             raise NotFoundError(f"Unavailabe provider: {provider_name}")
 
         # Update provider in database

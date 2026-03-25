@@ -41,6 +41,7 @@ class AIService:
     @log
     async def generate_text(
         self,
+        chat_id: int,
         prompt: str,
         provider: Optional[str] = None,
         model: Optional[str] = None,
@@ -57,8 +58,12 @@ class AIService:
             ProviderResponse with generated text and metadata
         """
         # Resolve provider and model
-        provider_instance = await self._resolve_provider(provider)
-        model_name = await self._resolve_model(model, provider_instance)
+        provider_instance = await self._resolve_provider(
+            chat_id=chat_id, provider_name=provider
+        )
+        model_name = await self._resolve_model(
+            chat_id=chat_id, model_name=model, provider=provider_instance
+        )
 
         # Build messages as UserMessage objects
         messages = [UserMessage(role="user", content=prompt)]
@@ -81,6 +86,7 @@ class AIService:
     @log
     async def generate_stream(
         self,
+        chat_id: int,
         prompt: str,
         provider: Optional[str] = None,
         model: Optional[str] = None,
@@ -97,8 +103,12 @@ class AIService:
             ProviderResponseChunk for each token, then ProviderResponseStream at the end
         """
         # Resolve provider and model
-        provider_instance = await self._resolve_provider(provider)
-        model_name = await self._resolve_model(model, provider_instance)
+        provider_instance = await self._resolve_provider(
+            chat_id=chat_id, provider_name=provider
+        )
+        model_name = await self._resolve_model(
+            chat_id=chat_id, model_name=model, provider=provider_instance
+        )
 
         # Build messages as UserMessage objects
         messages = [UserMessage(role="user", content=prompt)]
@@ -329,7 +339,9 @@ class AIService:
             ModelListResponse with models list and current model
         """
         target_provider = provider_name or await self.get_current_provider_name(chat_id)
-        provider_instance = await self._resolve_provider(chat_id, target_provider)
+        provider_instance = await self._resolve_provider(
+            chat_id=chat_id, provider_name=target_provider
+        )
 
         models = provider_instance.get_supported_models()
         current_model = self.provider_manager.get_current_model(chat_id)
@@ -352,7 +364,7 @@ class AIService:
     # =========================================HELPERS======================================================
 
     async def _resolve_provider(
-        self, chat_id: int, provider_name: Optional[str] = None
+        self, *, chat_id: int, provider_name: Optional[str] = None
     ):
         """
         Resolve provider name to provider instance.
@@ -366,9 +378,11 @@ class AIService:
         if provider_name:
             if not await self.provider_manager.is_provider_available(provider_name):
                 raise AIServiceError(f"Provider '{provider_name}' is not available")
-            provider = await self.provider_manager.get_provider(chat_id, provider_name)
+            provider = await self.provider_manager.get_provider(
+                chat_id=chat_id, provider_name=provider_name
+            )
         else:
-            provider = await self.provider_manager.get_current_provider(chat_id)
+            provider = await self.provider_manager.get_current_provider(chat_id=chat_id)
 
         if not provider:
             raise AIServiceError("Can not get current provider")
@@ -377,6 +391,7 @@ class AIService:
 
     async def _resolve_model(
         self,
+        *,
         chat_id: int,
         model_name: Optional[str] = None,
         provider: Optional[ProviderType] = None,
