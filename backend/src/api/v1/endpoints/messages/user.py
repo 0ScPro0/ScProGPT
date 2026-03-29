@@ -4,7 +4,7 @@ from api.dependencies import MessageService, get_message_service
 
 from database import User
 
-from core.exceptions import AuthError
+from core.exceptions import AuthError, HTTPNotImplementedError
 from core.security import get_current_user
 
 from schemas.ai import GenerateRequest, ProviderResponse, ProviderResponseStream
@@ -26,3 +26,4 @@ async def create_user_message(
     """Create message from user"""
     if not current_user:
         raise AuthError(detail="Not authenticated")
+    raise HTTPNotImplementedError("Not implemented")  # TODO

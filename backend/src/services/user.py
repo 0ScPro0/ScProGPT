@@ -3,7 +3,6 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from utils.logger import logger, log
 from database import User, CRUDUser, user_crud
 from schemas.user import (
     UserSchema,
@@ -12,6 +11,7 @@ from schemas.user import (
 )
 from schemas.user import UserSchema, UserCreate, UserUpdate
 from services.base import BaseService
+from utils.logger import logger, log
 
 
 class UserService(BaseService[User, UserCreate, UserUpdate, CRUDUser]):
@@ -23,18 +23,22 @@ class UserService(BaseService[User, UserCreate, UserUpdate, CRUDUser]):
             session=session,
         )
 
+    @log
     async def get_all_users(self) -> List[UserResponse]:
         users = await self.crud.get_many(self.session, skip=0, limit=10, order_by=None)
         return [UserResponse.model_validate(user) for user in users]
 
+    @log
     async def get_user(self, user_id: int) -> UserResponse:
         user = await self.crud.get(self.session, user_id)
         return UserResponse.model_validate(user)
 
+    @log
     async def update_user(self, user_id: int, user: UserUpdate) -> UserResponse:
         user = await self.crud.update(self.session, user_id, user)
         return UserResponse.model_validate(user)
 
+    @log
     async def delete_user(self, user_id: int) -> UserResponse:
         user = await self.crud.delete(self.session, user_id)
         return UserResponse.model_validate(user)

@@ -1,3 +1,4 @@
+from typing import List
 import json
 from fastapi import APIRouter, Depends
 
@@ -30,8 +31,7 @@ async def create_chat(
 
     try:
         chat.user_id = current_user.id
-        new_chat = await chat_service.create_chat(chat)
-        return ChatResponse.model_validate(new_chat)
+        return await chat_service.create_chat(chat)
     except Exception as e:  # TODO more exceptions
         raise e
 
@@ -52,6 +52,24 @@ async def create_temp_chat(
     raise NotImplementedError("Not implemented yet")
 
 
+# Delete chat
+@router.delete(
+    "/{chat_id}/delete",
+    summary="Delete chat by id",
+    description="Delete chat by id",
+    response_model=ChatResponse,
+)
+@log
+async def delete_chat(
+    chat_id: int,
+    current_user: User = Depends(get_current_user),
+    chat_service: ChatService = Depends(get_chat_service),
+):
+    if not current_user:
+        raise AuthError("Not authenticated")
+    return await chat_service.delete_chat(chat_id)
+
+
 # Get a chat by id
 @router.get(
     "/{chat_id}",
@@ -67,8 +85,7 @@ async def get_chat(
 ):
     if not current_user:
         raise AuthError("Not authenticated")
-    chat = await chat_service.get_chat(chat_id)
-    return ChatResponse.model_validate(chat)
+    return await chat_service.get_chat(chat_id)
 
 
 # Get all chats for the current user
@@ -76,7 +93,7 @@ async def get_chat(
     "/user",
     summary="Get user chats",
     description="Get all chats for the current user",
-    response_model=list[ChatResponse],
+    response_model=List[ChatResponse],
 )
 @log
 async def get_user_chats(
@@ -85,5 +102,4 @@ async def get_user_chats(
 ):
     if not current_user:
         raise AuthError("Not authenticated")
-    chats = await chat_service.get_user_chats(current_user.id)
-    return [ChatResponse.model_validate(chat) for chat in chats]
+    return await chat_service.get_user_chats(current_user.id)
