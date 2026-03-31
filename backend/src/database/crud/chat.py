@@ -54,7 +54,7 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
         Returns:
             List of Chat objects
         """
-        chats = await self.get_by_field_multy(
+        chats: List[Chat] = await self.get_by_field_multy(
             session=session,
             field_name="user_id",
             field_value=user_id,
@@ -66,6 +66,24 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
             chats = [chat for chat in chats if chat.pinned]
 
         return chats
+
+    async def get_chat_by_user(
+        self, session: AsyncSession, *, user_id: int
+    ) -> Optional[Chat]:
+        """
+        Get chat by user
+
+        Args:
+            session: Database session
+            user_id: int
+
+        Returns:
+            Chat or None if not found
+        """
+        chat = await self.get_by_field(
+            session=session, field_name="user_id", field_value=user_id
+        )
+        return chat
 
     @log_database_queries
     async def get_chat_with_messages(

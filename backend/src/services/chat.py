@@ -44,3 +44,11 @@ class ChatService(BaseService[Chat, ChatCreate, ChatUpdate, CRUDChat]):
         """Delete chat by id"""
         deleted_chat = await self.crud.delete_chat(self.session, chat_id=chat_id)
         return ChatResponse.model_validate(deleted_chat)
+
+    @log
+    async def is_user_has_chat(self, user_id: int, chat_id: int) -> bool:
+        """Check is user has the specified chat"""
+        chat = await self.crud.get_chat_by_user(self.session, user_id=user_id)
+        if not chat:
+            return False
+        return True
