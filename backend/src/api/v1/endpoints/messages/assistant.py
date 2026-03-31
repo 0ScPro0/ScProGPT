@@ -1,3 +1,4 @@
+from typing import Optional
 import json
 import traceback
 from fastapi import APIRouter, Depends, HTTPException, Path
@@ -5,14 +6,16 @@ from fastapi.responses import StreamingResponse
 
 from api.dependencies import (
     AIService,
+    ChatService,
     MessageService,
     get_ai_service,
+    get_chat_service,
     get_message_service,
 )
 
 from database import User
 
-from core.exceptions import AuthError, AIServiceError
+from core.exceptions import AuthError, AIServiceError, PermissionDeniedError
 from core.security import get_current_user
 
 from schemas.ai import (
@@ -23,6 +26,7 @@ from schemas.ai import (
     AssistantMessage,
 )
 from schemas.message import MessageCreate, MessageResponse
+from schemas.chat import ChatCreate
 
 from utils.logger import log
 from utils.serializator import serialize_model_to_json
@@ -39,8 +43,9 @@ router = APIRouter(prefix="/assistant", tags=["messages"])
 @log
 async def create_assistant_message(
     request: GenerateRequest,
-    chat_id: int = Path(..., description="The ID of the chat"),
+    chat_id: Optional[int] = Path(..., description="The ID of the chat"),
     ai_service: AIService = Depends(get_ai_service),
+    chat_service: ChatService = Depends(get_chat_service),
     message_service: MessageService = Depends(get_message_service),
     current_user: User = Depends(get_current_user),
 ) -> MessageResponse:
@@ -53,7 +58,17 @@ async def create_assistant_message(
     - **model**: Optional model override
     """
     if not current_user:
-        raise AuthError(detail="Not authenticated")
+        raise AuthError("Not authenticated")
+
+    # If chat_id is not assign, create new chat
+    if not chat_id:
+        new_chat = await chat_service.create_chat(ChatCreate(user_id=current_user.id))
+        chat_id = new_chat.id
+
+    if not await chat_service.is_user_has_chat(
+        user_id=current_user.id, chat_id=chat_id
+    ):
+        raise PermissionDeniedError(f"User does not have access to this chat")
 
     try:
         # Create and save UserMessage
@@ -104,8 +119,9 @@ async def create_assistant_message(
 @log
 async def create_assistant_message_stream(
     request: GenerateRequest,
-    chat_id: int = Path(..., description="The ID of the chat"),
+    chat_id: Optional[int] = Path(..., description="The ID of the chat"),
     ai_service: AIService = Depends(get_ai_service),
+    chat_service: ChatService = Depends(get_chat_service),
     message_service: MessageService = Depends(get_message_service),
     current_user: User = Depends(get_current_user),
 ):
@@ -121,6 +137,11 @@ async def create_assistant_message_stream(
     """
     if not current_user:
         raise AuthError(detail="Not authenticated")
+
+    if not await chat_service.is_user_has_chat(
+        user_id=current_user.id, chat_id=chat_id
+    ):
+        raise PermissionDeniedError(f"User does not have access to this chat")
 
     # Create and save UserMessage
     await message_service.create_message(UserMessage(content=request.prompt))
