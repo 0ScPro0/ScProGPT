@@ -31,7 +31,7 @@ export function Chat(){
             {/* Message wrapper */}
             <div className={styles.messages_wrapper}>
                 {messages.map((message) => {
-                    if (message.speaker === "assistant") {
+                    if (message.role === "assistant") {
                         if (message.isTypingIndicator) {
                             return (
                                 <MessageFromAssistant key={message.id}>

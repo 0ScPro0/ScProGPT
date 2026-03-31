@@ -11,7 +11,7 @@ export const useChat = () => {
         // User message
         const userMessage = {
             id: Date.now(), 
-            speaker: "user",
+            role: "user",
             text: inputText,
         };
         
@@ -24,7 +24,7 @@ export const useChat = () => {
         
         const typingIndicator = {
             id: typingIndicatorId,
-            speaker: "assistant",
+            role: "assistant",
             text: "• • •",
             isTypingIndicator: true,
         };
@@ -52,7 +52,7 @@ export const useChat = () => {
         // Create empty message
         const newMessage = {
             id: messageId,
-            speaker: "assistant",
+            role: "assistant",
             text: currentText,
         };
         
