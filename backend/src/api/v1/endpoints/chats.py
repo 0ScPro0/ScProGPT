@@ -36,20 +36,21 @@ async def create_chat(
         raise e
 
 
-# Create a temporary chat
-@router.post(
-    "/create/temp",
-    summary="Create a temporary chat",
-    description="Create a temporary chat for the current user",
+# Get all chats for the current user
+@router.get(
+    "/user",
+    summary="Get user chats",
+    description="Get all chats for the current user",
+    response_model=List[ChatResponse],
 )
 @log
-async def create_temp_chat(
-    chat: ChatCreate,
+async def get_user_chats(
     current_user: User = Depends(get_current_user),
     chat_service: ChatService = Depends(get_chat_service),
 ):
-    # TODO implement method
-    raise NotImplementedError("Not implemented yet")
+    if not current_user:
+        raise AuthError("Not authenticated")
+    return await chat_service.get_user_chats(current_user.id)
 
 
 # Delete chat
@@ -86,20 +87,3 @@ async def get_chat(
     if not current_user:
         raise AuthError("Not authenticated")
     return await chat_service.get_chat(chat_id)
-
-
-# Get all chats for the current user
-@router.get(
-    "/user",
-    summary="Get user chats",
-    description="Get all chats for the current user",
-    response_model=List[ChatResponse],
-)
-@log
-async def get_user_chats(
-    current_user: User = Depends(get_current_user),
-    chat_service: ChatService = Depends(get_chat_service),
-):
-    if not current_user:
-        raise AuthError("Not authenticated")
-    return await chat_service.get_user_chats(current_user.id)
