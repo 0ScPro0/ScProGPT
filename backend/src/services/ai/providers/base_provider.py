@@ -13,6 +13,7 @@ class BaseProvider(ABC):
     def __init__(self) -> None:
         self._available_models: Dict[str, str] = {}
         self.supported_models: List[str] = []
+        self.default_model = "gpt-4o-mini"
         self.provider_name: str = "base"
         self.prefix: str = "openai/v1"
         self.requires_v1_prefix: bool = False
