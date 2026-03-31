@@ -16,6 +16,8 @@ class ServerConfig(BaseModel):
     cors_origins: list[str] = [
         "http://localhost:8000",
         "http://0.0.0.0:8000",
+        "http://localhost:3000",
+        "http://0.0.0.0:3000",
     ]
 
 
@@ -30,7 +32,7 @@ class DatabaseConfig(BaseModel):
 
 
 class SecurityConfig(BaseModel):
-    secret_key: str = Field(default="")
+    secret_key: str
     algorithm: str = Field(default="HS256")
     access_token_expire_minutes: int = Field(default=30)
     refresh_token_expire_days: int = Field(default=30)
