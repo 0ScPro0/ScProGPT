@@ -131,6 +131,13 @@ class ProviderManager:
             if new_provider:
                 # Getting current model
                 current_model = await self.get_current_model(chat_id=chat_id)
+
+                # If current model is not available for new provider, switch it to default provider model
+                if not await self.is_model_available(
+                    chat_id=chat_id, model_name=current_model, provider=new_provider
+                ):
+                    current_model = new_provider.default_model
+
                 # Set new provider
                 await self.chat_crud.update_chat_provider_and_model(
                     session=self.session,
