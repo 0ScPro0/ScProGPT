@@ -48,7 +48,9 @@ class ChatService(BaseService[Chat, ChatCreate, ChatUpdate, CRUDChat]):
     @log
     async def is_user_has_chat(self, user_id: int, chat_id: int) -> bool:
         """Check is user has the specified chat"""
-        chat = await self.crud.get_chat_by_user(self.session, user_id=user_id)
+        chat = await self.crud.get_chat_by_user_and_id(
+            self.session, user_id=user_id, chat_id=chat_id
+        )
         if not chat:
             return False
         return True

@@ -102,10 +102,10 @@ async def create_assistant_message(
         )
 
         # Save message
-        message_response = await message_service.create_message(new_message)
+        message = await message_service.create_message(new_message)
 
         # Return MessageResponse
-        return message_response
+        return message
 
     except AIServiceError as e:
         raise HTTPException(status_code=502, detail=str(e))
@@ -138,16 +138,28 @@ async def create_assistant_message_stream(
     if not current_user:
         raise AuthError(detail="Not authenticated")
 
+    # If chat_id is not assign, create new chat
+    if not chat_id:
+        new_chat = await chat_service.create_chat(ChatCreate(user_id=current_user.id))
+        chat_id = new_chat.id
+
     if not await chat_service.is_user_has_chat(
         user_id=current_user.id, chat_id=chat_id
     ):
         raise PermissionDeniedError(f"User does not have access to this chat")
 
-    # Create and save UserMessage
-    await message_service.create_message(UserMessage(content=request.prompt))
+    try:
+        # Create and save UserMessage
+        user_message = MessageCreate(
+            role="user", content=request.prompt, chat_id=chat_id
+        )
+        await message_service.create_message(user_message)
 
-    # Get all chat messages (to context)
-    messages = await message_service.get_chat_messages(chat_id=chat_id)
+        # Get all chat messages (to context)
+        messages = await message_service.get_chat_messages(chat_id=chat_id)
+
+    except Exception as e:
+        return f"data: {json.dumps({'error': f'Unexpected error: {str(e)}', 'traceback': traceback.format_exc()})}\n\n"
 
     async def sse_stream():
         try:

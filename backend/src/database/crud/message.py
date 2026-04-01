@@ -47,7 +47,7 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         Returns:
             List of Message objects
         """
-        messages = await self.get_by_field_multy(
+        messages = await self.get_by_field_many(
             session=session,
             field_name="chat_id",
             field_value=chat_id,

@@ -155,8 +155,8 @@ class AIService:
 
         return OperationResponse(
             success=True,
-            message=f"Provider switched from '{old_provider}' to '{provider_name}'",
-            previous_value=old_provider,
+            message=f"Provider switched from '{old_provider.provider_name}' to '{provider_name}'",
+            previous_value=old_provider.provider_name,
             new_value=provider_name,
         )
 

@@ -59,7 +59,7 @@ class OpenAIProvider(BaseProvider):
                 messages=dump_messages,
                 model=model,
                 temperature=temperature,
-                max_tokens=max_tokens,
+                max_completion_tokens=max_tokens,
             )
         except Exception as e:
             raise AIGenerationError(f"Failed to generate response, detail: {e}")
@@ -112,7 +112,7 @@ class OpenAIProvider(BaseProvider):
                 messages=dump_messages,
                 model=model,
                 temperature=temperature,
-                max_tokens=max_tokens,
+                max_completion_tokens=max_tokens,
                 stream=True,
             )
 

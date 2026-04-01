@@ -80,6 +80,6 @@ class MessageSchema(BaseMessage):
 
 
 class MessageResponse(MessageSchema):
-    """Abstract schema for message response with all database fields. Extends MessageSchema"""
+    """Schema for message response with all database fields, provider and model. Extends MessageSchema"""
 
     pass

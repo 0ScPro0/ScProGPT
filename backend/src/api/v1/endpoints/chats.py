@@ -2,12 +2,21 @@ from typing import List
 import json
 from fastapi import APIRouter, Depends
 
-from api.dependencies import get_chat_service
-from core.exceptions import AuthError
-from database import User
+from api.dependencies import ChatService, AIService, get_chat_service, get_ai_service
+
+from core.exceptions import AuthError, PermissionDeniedError
 from core.security import get_current_user
-from services.chat import ChatService
+
+from database import User
+
 from schemas.chat import ChatResponse, ChatCreate
+from schemas.ai import (
+    ProviderStatus,
+    SetProviderRequest,
+    SetModelRequest,
+    OperationResponse,
+)
+
 from utils.logger import log, logger
 
 router = APIRouter(prefix="/chats", tags=["chats"])
@@ -45,12 +54,79 @@ async def create_chat(
 )
 @log
 async def get_user_chats(
-    current_user: User = Depends(get_current_user),
     chat_service: ChatService = Depends(get_chat_service),
+    current_user: User = Depends(get_current_user),
 ):
     if not current_user:
         raise AuthError("Not authenticated")
+
     return await chat_service.get_user_chats(current_user.id)
+
+
+# Update chat provider
+@router.patch("/{chat_id}/update/provider", response_model=OperationResponse)
+@log
+async def update_chat_provider(
+    chat_id: int,
+    request: SetProviderRequest,
+    chat_service: ChatService = Depends(get_chat_service),
+    ai_service: AIService = Depends(get_ai_service),
+    current_user: User = Depends(get_current_user),
+):
+    if not current_user:
+        raise AuthError("Not authenticated")
+
+    if not await chat_service.is_user_has_chat(
+        user_id=current_user.id, chat_id=chat_id
+    ):
+        raise PermissionDeniedError(f"User does not have access to this chat")
+
+    return await ai_service.set_provider(
+        chat_id=chat_id, provider_name=request.provider
+    )
+
+
+# Update chat model
+@router.patch("/{chat_id}/update/model", response_model=OperationResponse)
+@log
+async def update_chat_model(
+    chat_id: int,
+    request: SetModelRequest,
+    chat_service: ChatService = Depends(get_chat_service),
+    ai_service: AIService = Depends(get_ai_service),
+    current_user: User = Depends(get_current_user),
+):
+    if not current_user:
+        raise AuthError("Not authenticated")
+
+    if not await chat_service.is_user_has_chat(
+        user_id=current_user.id, chat_id=chat_id
+    ):
+        raise PermissionDeniedError(f"User does not have access to this chat")
+
+    return await ai_service.set_model(chat_id=chat_id, model_name=request.model)
+
+
+# Get chat current provider status
+@router.get("/{chat_id}/provider", response_model=ProviderStatus)
+@log
+async def get_provider_status(
+    chat_id: int,
+    chat_service: ChatService = Depends(get_chat_service),
+    ai_service: AIService = Depends(get_ai_service),
+    current_user: User = Depends(get_current_user),
+):
+    """Get current provider status"""
+
+    if not current_user:
+        raise AuthError("Not authenticated")
+
+    if not await chat_service.is_user_has_chat(
+        user_id=current_user.id, chat_id=chat_id
+    ):
+        raise PermissionDeniedError(f"User does not have access to this chat")
+
+    return await ai_service.get_status(chat_id=chat_id)
 
 
 # Delete chat
@@ -63,11 +139,17 @@ async def get_user_chats(
 @log
 async def delete_chat(
     chat_id: int,
-    current_user: User = Depends(get_current_user),
     chat_service: ChatService = Depends(get_chat_service),
+    current_user: User = Depends(get_current_user),
 ):
     if not current_user:
         raise AuthError("Not authenticated")
+
+    if not await chat_service.is_user_has_chat(
+        user_id=current_user.id, chat_id=chat_id
+    ):
+        raise PermissionDeniedError(f"User does not have access to this chat")
+
     return await chat_service.delete_chat(chat_id)
 
 
@@ -81,8 +163,8 @@ async def delete_chat(
 @log
 async def get_chat(
     chat_id: int,
-    current_user: User = Depends(get_current_user),
     chat_service: ChatService = Depends(get_chat_service),
+    current_user: User = Depends(get_current_user),
 ):
     if not current_user:
         raise AuthError("Not authenticated")
