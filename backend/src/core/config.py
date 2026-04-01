@@ -54,7 +54,12 @@ class AIConfig(BaseModel):
         # OpenAI model lists
         models: dict = Field(default_factory=lambda: load_models("openai"))
 
+    class OpenRouterConfig(BaseModel):
+        # OpenRouter model lists
+        models: dict = Field(default_factory=lambda: load_models("openrouter"))
+
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
+    openrouter: OpenRouterConfig = Field(default_factory=OpenRouterConfig)
 
 
 class DateConfig(BaseModel):

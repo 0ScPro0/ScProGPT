@@ -7,7 +7,11 @@ from core.exceptions import (
     ProviderManagementError,
     HTTPNotImplementedError,
 )
-from services.ai.providers import BaseProvider, OpenAIProvider  # TODO more providers
+from services.ai.providers import (
+    BaseProvider,
+    OpenAIProvider,
+    OpenRouterProvider,
+)  # TODO more providers
 from database.crud.chat import chat_crud
 from schemas.ai import ProviderInfo, ProviderStatus
 from utils.logger import log
@@ -31,7 +35,7 @@ class NotImplementedProvider:
         )
 
 
-ProviderType = Union[OpenAIProvider, NotImplementedProvider]
+ProviderType = Union[OpenAIProvider, OpenRouterProvider, NotImplementedProvider]
 
 
 class ProviderManager:
@@ -51,7 +55,7 @@ class ProviderManager:
             "openai": OpenAIProvider(),
             "google": NotImplementedProvider("google"),
             "anthropic": NotImplementedProvider("anthropic"),
-            "openrouter": NotImplementedProvider("openrouter"),
+            "openrouter": OpenRouterProvider(),
         }
         self._default_provider_name: str = settings.ai.default_provider
         self._default_model: str = settings.ai.default_model

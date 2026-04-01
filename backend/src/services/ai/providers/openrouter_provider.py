@@ -1,0 +1,160 @@
+from openai import AsyncOpenAI
+from typing import Union, AsyncGenerator, List
+
+from core.config import settings
+from core.exceptions import AIGenerationError, AIStreamGenerationError
+from utils.logger import log
+from schemas.ai import (
+    AssistantMessage,
+    UserMessage,
+    ProviderResponse,
+    ProviderResponseStream,
+    ProviderResponseChunk,
+)
+from .base_provider import BaseProvider
+
+
+Message = Union[AssistantMessage, UserMessage]
+
+
+class OpenRouterProvider(BaseProvider):
+    def __init__(self) -> None:
+        super().__init__()
+        self.provider_name = "openrouter"
+        self.prefix = "openrouter/v1"
+        self.requires_v1_prefix = True
+        self.base_url = settings.ai.base_url + self.prefix
+        self.client = AsyncOpenAI(api_key=settings.ai.api_key, base_url=self.base_url)
+        self._available_models = settings.ai.openrouter.models
+        self.supported_models = settings.ai.openrouter.models["supported"]
+        self.default_model = settings.ai.openrouter.models["default"]
+
+    @log
+    async def generate_text(
+        self,
+        *,
+        messages: List[Message],
+        model: str,
+        temperature: float = 1,
+        max_tokens: int = 4096,
+    ) -> ProviderResponse:
+        """
+        Generate and return full response immediately
+
+        Args:
+            messages: chat context, list of dicts of messages and roles
+            model: AI model
+            temperature: the degree of randomness and creativity of the generated text
+            max_tokens: max tokens for response
+
+        Returns:
+            provider response as ProviderResponse object
+        """
+        # Dump messages to dict
+        dump_messages: list = [m.model_dump() for m in messages]
+
+        # Generate response
+        try:
+            response = await self.client.chat.completions.create(
+                messages=dump_messages,
+                model=model,
+                temperature=temperature,
+                max_completion_tokens=max_tokens,
+            )
+        except Exception as e:
+            raise AIGenerationError(f"Failed to generate response, detail: {e}")
+
+        # Return
+        return ProviderResponse(
+            provider=self.provider_name,
+            model=model,
+            message=AssistantMessage(
+                content=response.choices[0].message.content,
+            ),
+            usage={
+                "prompt_tokens": response.usage.prompt_tokens,
+                "completion_tokens": response.usage.completion_tokens,
+                "total_tokens": response.usage.total_tokens,
+            },
+            cost=0.0,  # TODO calculate cost
+        )
+
+    @log
+    async def generate_stream(
+        self,
+        *,
+        messages: List[Message],
+        model: str,
+        temperature: float = 1,
+        max_tokens: int = 4096,
+    ) -> AsyncGenerator[Union[ProviderResponseChunk, ProviderResponseStream], None]:
+        """
+        Generate and return response stream
+
+        Args:
+            messages: chat context, list of dicts of messages and roles
+            model: AI model
+            temperature: the degree of randomness and creativity of the generated text
+            max_tokens: max tokens for response
+
+        Returns:
+            provider response stream
+        """
+        # Dump messages
+        # Specified list type hint cause create method returns exceptions for any other type
+        dump_messages: list = [m.model_dump() for m in messages]
+
+        # Generate response
+        content = ""
+        usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+        try:
+            stream = await self.client.chat.completions.create(
+                messages=dump_messages,
+                model=model,
+                temperature=temperature,
+                max_completion_tokens=max_tokens,
+                stream=True,
+            )
+
+            # Yield content
+            async for chunk in stream:
+                # If chunk has no choices, it's probably meaning that it's the last chunk
+                # or that was unexpected behavior and it will throw an exception
+                if not chunk.choices:
+                    # If chunk has usage, it's meaning that it's the last chunk so update usage
+                    if chunk.usage:
+                        usage = {
+                            "prompt_tokens": chunk.usage.prompt_tokens,
+                            "completion_tokens": chunk.usage.completion_tokens,
+                            "total_tokens": chunk.usage.total_tokens,
+                        }
+                    continue
+
+                # Get delta
+                delta = chunk.choices[0].delta
+                if delta and delta.content:
+                    # Add content
+                    content += delta.content
+
+                    # Yield
+                    yield ProviderResponseChunk(
+                        provider=self.provider_name,
+                        model=model,
+                        content=delta.content,
+                    )
+        except Exception as e:
+            yield ProviderResponseChunk(
+                provider=self.provider_name,
+                model=model,
+                content=f"\n\n[ERROR: {str(e)}]",
+            )
+
+        # Return full response as a last chunk to comfortable working with database (serialization)
+        response = ProviderResponseStream(
+            provider=self.provider_name,
+            model=model,
+            message=AssistantMessage(content=content),
+            usage=usage,
+            cost=0.0,  # TODO calculate cost
+        )
+        yield response
