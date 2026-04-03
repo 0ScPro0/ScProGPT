@@ -71,7 +71,7 @@ backend/*.swp
 backend/*.swo
 
 # Other
-backend/tests/ignoring_tests
+backend/tests/prototypes
 count_lines.py
 
 # ==================== FRONTEND (React) ====================
