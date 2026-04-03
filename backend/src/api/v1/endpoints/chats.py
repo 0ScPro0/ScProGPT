@@ -9,12 +9,12 @@ from core.security import get_current_user
 
 from database import User
 
-from schemas.chat import ChatResponse, ChatCreate
+from schemas.base import OperationResponse
+from schemas.chat import ChatResponse, ChatCreate, SetTitleRequest
 from schemas.ai import (
     ProviderStatus,
     SetProviderRequest,
     SetModelRequest,
-    OperationResponse,
 )
 
 from utils.logger import log, logger
@@ -105,6 +105,26 @@ async def update_chat_model(
         raise PermissionDeniedError(f"User does not have access to this chat")
 
     return await ai_service.set_model(chat_id=chat_id, model_name=request.model)
+
+
+# Update chat title
+@router.patch("/{chat_id}/update/title", response_model=OperationResponse)
+@log
+async def update_chat_title(
+    chat_id: int,
+    request: SetTitleRequest,
+    chat_service: ChatService = Depends(get_chat_service),
+    current_user: User = Depends(get_current_user),
+):
+    if not current_user:
+        raise AuthError("Not authenticated")
+
+    if not await chat_service.is_user_has_chat(
+        user_id=current_user.id, chat_id=chat_id
+    ):
+        raise PermissionDeniedError(f"User does not have access to this chat")
+
+    return await chat_service.set_title(chat_id=chat_id, new_title=request.title)
 
 
 # Get chat current provider status

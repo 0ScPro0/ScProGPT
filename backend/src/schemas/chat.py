@@ -77,6 +77,10 @@ class ChatUpdate(BaseModel):
     )
 
 
+class SetTitleRequest(BaseModel):
+    title: str = Field("New chat", min_length=1, max_length=100)
+
+
 class ChatSchema(BaseChat):
     id: int = Field(..., description="Unique chat identifier")
     user_id: int = Field(..., description="ID of chat owner")

@@ -6,6 +6,7 @@ from core.config import settings
 from database import Base, CRUDBase, Chat, CRUDChat
 from services.base import BaseService
 from schemas.chat import ChatCreate, ChatUpdate, ChatResponse
+from schemas.base import OperationResponse
 from utils.logger import log
 
 
@@ -44,6 +45,18 @@ class ChatService(BaseService[Chat, ChatCreate, ChatUpdate, CRUDChat]):
         """Delete chat by id"""
         deleted_chat = await self.crud.delete_chat(self.session, chat_id=chat_id)
         return ChatResponse.model_validate(deleted_chat)
+
+    @log
+    async def set_title(self, chat_id: int, new_title: str) -> OperationResponse:
+        updated_chat: Chat = await self.crud.update_field(
+            self.session, object_id=chat_id, field_name="title", field_value=new_title
+        )
+        return OperationResponse(
+            success=True,
+            message="Set new chat title",
+            previous_value=None,
+            new_value=updated_chat.title,
+        )
 
     @log
     async def is_user_has_chat(self, user_id: int, chat_id: int) -> bool:

@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import List, Literal, Optional, Dict
 from pydantic import BaseModel, Field
 
@@ -120,12 +119,3 @@ class ModelListResponse(BaseModel):
     provider: str
     models: List[str]
     current_model: str
-
-
-class OperationResponse(BaseModel):
-    """Generic response for operations"""
-
-    success: bool
-    message: str
-    previous_value: Optional[str] = None
-    new_value: Optional[str] = None

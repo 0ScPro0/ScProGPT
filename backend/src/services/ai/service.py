@@ -5,6 +5,7 @@ from core.exceptions import AIServiceError
 from services.base import BaseService
 from services.ai.providers import OpenAIProvider
 from services.ai.manager import ProviderType, ProviderManager
+from schemas.base import OperationResponse
 from schemas.ai import (
     ProviderResponse,
     ProviderResponseStream,
@@ -15,7 +16,6 @@ from schemas.ai import (
     ProviderListResponse,
     ProviderDetailResponse,
     ModelListResponse,
-    OperationResponse,
     AssistantMessage,
     UserMessage,
 )
