@@ -1,32 +1,32 @@
 """
-Integration тесты для CRUD операций с пользователями.
+Integration tests for user CRUD operations.
 
-Тестируем полный цикл: создание, чтение, обновление, удаление
-с реальной тестовой БД (SQLite in-memory).
+Tests cover the full cycle: create, read, update, delete
+with a real test database (SQLite in-memory).
 """
 
 import pytest
 import pytest_asyncio
 
-from database.models.user import User
-from database.crud.user import CRUDUser, user_crud
-from core.security import hash_password
+from database.models.user import User  # type: ignore
+from database.crud.user import CRUDUser, user_crud  # type: ignore
+from core.security import hash_password  # type: ignore
 
 
 # ============================================================
-# ТЕСТЫ: Базовые CRUD операции
+# TESTS: Basic CRUD operations
 # ============================================================
 
 
 class TestUserCRUDCreate:
-    """Тесты создания пользователя"""
+    """User creation tests."""
 
     @pytest.mark.asyncio
     async def test_create_user_success(self, test_session, user_data_factory):
-        """Пользователь успешно создаётся"""
+        """User is created successfully."""
         data = user_data_factory()
         data["password_hash"] = hash_password(data["password"])
-        del data["password"]  # Модель User не принимает 'password'
+        del data["password"]  # User model does not accept 'password'
 
         user = await user_crud.create(test_session, object_in=data)
 
@@ -38,7 +38,7 @@ class TestUserCRUDCreate:
 
     @pytest.mark.asyncio
     async def test_create_user_with_dict(self, test_session, user_data_factory):
-        """Пользователь создаётся из dict"""
+        """User is created from dict."""
         data = user_data_factory()
         data["password_hash"] = hash_password(data["password"])
         del data["password"]
@@ -52,7 +52,7 @@ class TestUserCRUDCreate:
     async def test_create_user_auto_sets_timestamps(
         self, test_session, user_data_factory
     ):
-        """При создании автоматически ставятся created_at и updated_at"""
+        """created_at and updated_at are automatically set on creation."""
         data = user_data_factory()
         data["password_hash"] = hash_password(data["password"])
         del data["password"]
@@ -64,11 +64,11 @@ class TestUserCRUDCreate:
 
 
 class TestUserCRUDRead:
-    """Тесты чтения пользователей"""
+    """User reading tests."""
 
     @pytest.mark.asyncio
     async def test_get_user_by_id(self, test_session, test_user_in_db):
-        """Получение пользователя по ID"""
+        """Get user by ID."""
         user = await user_crud.get(test_session, test_user_in_db.id)
 
         assert user is not None
@@ -77,14 +77,14 @@ class TestUserCRUDRead:
 
     @pytest.mark.asyncio
     async def test_get_nonexistent_user_returns_none(self, test_session):
-        """Получение несуществующего пользователя возвращает None"""
+        """Get non-existent user returns None."""
         user = await user_crud.get(test_session, 99999)
 
         assert user is None
 
     @pytest.mark.asyncio
     async def test_get_by_email(self, test_session, test_user_in_db):
-        """Получение пользователя по email"""
+        """Get user by email."""
         user = await user_crud.get_by_email(test_session, test_user_in_db.email)
 
         assert user is not None
@@ -92,14 +92,14 @@ class TestUserCRUDRead:
 
     @pytest.mark.asyncio
     async def test_get_by_wrong_email_returns_none(self, test_session):
-        """Получение по несуществующему email возвращает None"""
+        """Get by non-existent email returns None."""
         user = await user_crud.get_by_email(test_session, "nonexistent@example.com")
 
         assert user is None
 
     @pytest.mark.asyncio
     async def test_get_by_username(self, test_session, test_user_in_db):
-        """Получение пользователя по username"""
+        """Get user by username."""
         user = await user_crud.get_by_username(test_session, test_user_in_db.username)
 
         assert user is not None
@@ -107,25 +107,25 @@ class TestUserCRUDRead:
 
     @pytest.mark.asyncio
     async def test_is_exists_returns_true(self, test_session, test_user_in_db):
-        """Проверка существования пользователя"""
+        """Check user exists."""
         exists = await user_crud.is_exists(test_session, id=test_user_in_db.id)
 
         assert exists is True
 
     @pytest.mark.asyncio
     async def test_is_exists_returns_false(self, test_session):
-        """Проверка несуществующего пользователя"""
+        """Check non-existent user."""
         exists = await user_crud.is_exists(test_session, id=99999)
 
         assert exists is False
 
 
 class TestUserCRUDUpdate:
-    """Тесты обновления пользователя"""
+    """User update tests."""
 
     @pytest.mark.asyncio
     async def test_update_user_email(self, test_session, test_user_in_db, unique_email):
-        """Обновление email пользователя"""
+        """Update user email."""
         new_email = unique_email
 
         updated = await user_crud.update_field(
@@ -140,7 +140,7 @@ class TestUserCRUDUpdate:
 
     @pytest.mark.asyncio
     async def test_update_user_balance(self, test_session, test_user_in_db):
-        """Обновление баланса пользователя"""
+        """Update user balance."""
         updated = await user_crud.update_field(
             test_session,
             object_id=test_user_in_db.id,
@@ -149,12 +149,12 @@ class TestUserCRUDUpdate:
         )
 
         assert updated is not None
-        # balance хранится как Decimal, сравниваем с допуском
+        # balance is stored as Decimal, compare with tolerance
         assert float(updated.balance) == 150.50
 
     @pytest.mark.asyncio
     async def test_update_nonexistent_user_returns_none(self, test_session):
-        """Обновление несуществующего пользователя возвращает None"""
+        """Update non-existent user returns None."""
         updated = await user_crud.update_field(
             test_session,
             object_id=99999,
@@ -168,7 +168,7 @@ class TestUserCRUDUpdate:
     async def test_cannot_update_protected_field_id(
         self, test_session, test_user_in_db
     ):
-        """Нельзя обновить защищённое поле id"""
+        """Cannot update protected field id."""
         with pytest.raises(PermissionError):
             await user_crud.update_field(
                 test_session,
@@ -181,7 +181,7 @@ class TestUserCRUDUpdate:
     async def test_cannot_update_protected_field_created_at(
         self, test_session, test_user_in_db
     ):
-        """Нельзя обновить защищённое поле created_at"""
+        """Cannot update protected field created_at."""
         with pytest.raises(PermissionError):
             await user_crud.update_field(
                 test_session,
@@ -192,11 +192,11 @@ class TestUserCRUDUpdate:
 
     @pytest.mark.asyncio
     async def test_activate_user(self, test_session, test_user_in_db):
-        """Активация пользователя"""
-        # Сначала деактивируем
+        """Activate user."""
+        # First deactivate
         await user_crud.deactivate(test_session, user_id=test_user_in_db.id)
 
-        # Активируем
+        # Activate
         updated = await user_crud.activate(test_session, user_id=test_user_in_db.id)
 
         assert updated is not None
@@ -204,7 +204,7 @@ class TestUserCRUDUpdate:
 
     @pytest.mark.asyncio
     async def test_deactivate_user(self, test_session, test_user_in_db):
-        """Деактивация пользователя"""
+        """Deactivate user."""
         updated = await user_crud.deactivate(test_session, user_id=test_user_in_db.id)
 
         assert updated is not None
@@ -212,7 +212,7 @@ class TestUserCRUDUpdate:
 
     @pytest.mark.asyncio
     async def test_is_active_returns_true(self, test_session, test_user_in_db):
-        """Проверка что пользователь активен"""
+        """Check user is active."""
         is_active = await user_crud.is_active(test_session, user_id=test_user_in_db.id)
 
         assert is_active is True
@@ -221,7 +221,7 @@ class TestUserCRUDUpdate:
     async def test_is_active_returns_false_for_deactivated(
         self, test_session, test_user_in_db
     ):
-        """Проверка что деактивированный пользователь не активен"""
+        """Check deactivated user is inactive."""
         await user_crud.deactivate(test_session, user_id=test_user_in_db.id)
 
         is_active = await user_crud.is_active(test_session, user_id=test_user_in_db.id)
@@ -230,14 +230,14 @@ class TestUserCRUDUpdate:
 
     @pytest.mark.asyncio
     async def test_is_active_returns_false_for_nonexistent(self, test_session):
-        """Проверка несуществующего пользователя"""
+        """Check non-existent user."""
         is_active = await user_crud.is_active(test_session, user_id=99999)
 
         assert is_active is False
 
     @pytest.mark.asyncio
     async def test_update_refresh_token(self, test_session, test_user_in_db):
-        """Обновление refresh токена пользователя"""
+        """Update user refresh token."""
         from datetime import datetime, timedelta, timezone
 
         token = "test_refresh_token_value"
@@ -255,41 +255,41 @@ class TestUserCRUDUpdate:
 
 
 class TestUserCRUDDelete:
-    """Тесты удаления пользователя"""
+    """User deletion tests."""
 
     @pytest.mark.asyncio
     async def test_delete_user_success(self, test_session, test_user_in_db):
-        """Пользователь успешно удаляется"""
+        """User is successfully deleted."""
         deleted = await user_crud.delete_user(test_session, user_id=test_user_in_db.id)
 
         assert deleted is not None
         assert deleted.id == test_user_in_db.id
 
-        # Проверяем что больше не существует
+        # Check that user no longer exists
         user = await user_crud.get(test_session, test_user_in_db.id)
         assert user is None
 
     @pytest.mark.asyncio
     async def test_delete_nonexistent_user_returns_none(self, test_session):
-        """Удаление несуществующего пользователя возвращает None"""
+        """Delete non-existent user returns None."""
         deleted = await user_crud.delete_user(test_session, user_id=99999)
 
         assert deleted is None
 
 
 class TestUserCRUDRecordsCount:
-    """Тесты подсчёта записей"""
+    """Record count tests."""
 
     @pytest.mark.asyncio
     async def test_records_count_zero(self, test_session):
-        """Ноль пользователей в пустой БД"""
+        """Zero users in empty DB."""
         count = await user_crud.records_count(test_session)
 
         assert count == 0
 
     @pytest.mark.asyncio
     async def test_records_count_one(self, test_session, test_user_in_db):
-        """Один пользователь после создания"""
+        """One user after creation."""
         count = await user_crud.records_count(test_session)
 
         assert count == 1
@@ -298,8 +298,8 @@ class TestUserCRUDRecordsCount:
     async def test_records_count_multiple(
         self, test_session, test_user_in_db, user_data_factory
     ):
-        """Несколько пользователей"""
-        # Создаём ещё 2 пользователей
+        """Multiple users."""
+        # Create 2 more users
         for _ in range(2):
             data = user_data_factory()
             data["password_hash"] = hash_password(data["password"])
@@ -308,4 +308,4 @@ class TestUserCRUDRecordsCount:
 
         count = await user_crud.records_count(test_session)
 
-        assert count == 3  # test_user_in_db + 2 новых
+        assert count == 3  # test_user_in_db + 2 new

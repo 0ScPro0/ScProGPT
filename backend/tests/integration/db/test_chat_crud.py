@@ -1,28 +1,29 @@
 """
-Integration тесты для CRUD операций с чатами.
+Integration tests for chat CRUD operations.
 
-Тестируем создание, чтение, обновление, удаление чатов
-с реальной тестовой БД.
+Tests cover creation, reading, updating, and deletion of chats
+with a real test database.
 """
 
 import pytest
 import pytest_asyncio
 
-from database.models.chat import Chat
-from database.crud.chat import CRUDChat, chat_crud
-from core.security import hash_password
+from database.models.chat import Chat  # type: ignore
+from database.crud.chat import CRUDChat, chat_crud  # type: ignore
+from core.security import hash_password  # type: ignore
 
 
 # ============================================================
-# ТЕСТЫ: CRUD Chat — Создание
+# TESTS: CRUD Chat — Create
 # ============================================================
+
 
 class TestChatCRUDCreate:
-    """Тесты создания чата"""
+    """Chat creation tests."""
 
     @pytest.mark.asyncio
     async def test_create_chat_success(self, test_session, test_user_in_db):
-        """Чат успешно создаётся"""
+        """Chat is created successfully."""
         chat_data = {
             "user_id": test_user_in_db.id,
             "title": "My Test Chat",
@@ -46,7 +47,7 @@ class TestChatCRUDCreate:
 
     @pytest.mark.asyncio
     async def test_create_chat_with_defaults(self, test_session, test_user_in_db):
-        """Чат создаётся с дефолтными значениями"""
+        """Chat is created with default values."""
         chat_data = {
             "user_id": test_user_in_db.id,
             "provider": "openai",
@@ -63,7 +64,7 @@ class TestChatCRUDCreate:
 
     @pytest.mark.asyncio
     async def test_create_chat_auto_sets_position(self, test_session, test_user_in_db):
-        """Чат автоматически получает position"""
+        """Chat automatically gets a position."""
         chat_data = {
             "user_id": test_user_in_db.id,
             "provider": "openai",
@@ -76,15 +77,16 @@ class TestChatCRUDCreate:
 
 
 # ============================================================
-# ТЕСТЫ: CRUD Chat — Чтение
+# TESTS: CRUD Chat — Read
 # ============================================================
 
+
 class TestChatCRUDRead:
-    """Тесты чтения чатов"""
+    """Chat reading tests."""
 
     @pytest.mark.asyncio
     async def test_get_chat_by_id(self, test_session, test_chat_in_db):
-        """Получение чата по ID"""
+        """Get chat by ID."""
         chat = await chat_crud.get_chat(test_session, chat_id=test_chat_in_db.id)
 
         assert chat is not None
@@ -93,15 +95,15 @@ class TestChatCRUDRead:
 
     @pytest.mark.asyncio
     async def test_get_nonexistent_chat_returns_none(self, test_session):
-        """Получение несуществующего чата возвращает None"""
+        """Get non-existent chat returns None."""
         chat = await chat_crud.get_chat(test_session, chat_id=99999)
 
         assert chat is None
 
     @pytest.mark.asyncio
     async def test_get_user_chats(self, test_session, test_user_in_db):
-        """Получение всех чатов пользователя"""
-        # Создаём ещё чаты
+        """Get all user's chats."""
+        # Create more chats
         for i in range(3):
             await chat_crud.create(
                 test_session,
@@ -115,22 +117,22 @@ class TestChatCRUDRead:
 
         chats = await chat_crud.get_user_chats(test_session, user_id=test_user_in_db.id)
 
-        assert len(chats) == 4  # test_chat_in_db + 3 новых
+        assert len(chats) == 4  # test_chat_in_db + 3 new
 
     @pytest.mark.asyncio
     async def test_get_user_chats_empty(self, test_session):
-        """Получение чатов несуществующего пользователя — пустой список"""
+        """Get chats for non-existent user — empty list."""
         chats = await chat_crud.get_user_chats(test_session, user_id=99999)
 
         assert len(chats) == 0
 
     @pytest.mark.asyncio
     async def test_get_pinned_chats_only(self, test_session, test_user_in_db):
-        """Получение только закреплённых чатов"""
-        # Закрепляем один чат
-        await chat_crud.pin_chat(test_session, chat_id=test_chat_in_db.id)
+        """Get only pinned chats."""
+        # Pin one chat
+        await chat_crud.pin_chat(test_session, chat_id=test_chat_in_db.id)  # type: ignore
 
-        # Создаём ещё один незакреплённый
+        # Create another unpinned chat
         await chat_crud.create(
             test_session,
             object_in={
@@ -149,7 +151,7 @@ class TestChatCRUDRead:
 
     @pytest.mark.asyncio
     async def test_get_chat_provider(self, test_session, test_chat_in_db):
-        """Получение провайдера чата"""
+        """Get chat provider."""
         provider = await chat_crud.get_chat_provider(
             test_session, chat_id=test_chat_in_db.id
         )
@@ -158,14 +160,16 @@ class TestChatCRUDRead:
 
     @pytest.mark.asyncio
     async def test_get_chat_model(self, test_session, test_chat_in_db):
-        """Получение модели чата"""
+        """Get chat model."""
         model = await chat_crud.get_chat_model(test_session, chat_id=test_chat_in_db.id)
 
         assert model == "gpt-3.5-turbo"
 
     @pytest.mark.asyncio
-    async def test_get_chat_by_user_and_id(self, test_session, test_user_in_db, test_chat_in_db):
-        """Получение чата по user_id и chat_id"""
+    async def test_get_chat_by_user_and_id(
+        self, test_session, test_user_in_db, test_chat_in_db
+    ):
+        """Get chat by user_id and chat_id."""
         chat = await chat_crud.get_chat_by_user_and_id(
             test_session, user_id=test_user_in_db.id, chat_id=test_chat_in_db.id
         )
@@ -177,7 +181,7 @@ class TestChatCRUDRead:
     async def test_get_chat_by_wrong_user_and_id_returns_none(
         self, test_session, test_user_in_db, test_chat_in_db
     ):
-        """Получение чата чужим user_id возвращает None"""
+        """Get chat with wrong user_id returns None."""
         chat = await chat_crud.get_chat_by_user_and_id(
             test_session, user_id=99999, chat_id=test_chat_in_db.id
         )
@@ -186,15 +190,16 @@ class TestChatCRUDRead:
 
 
 # ============================================================
-# ТЕСТЫ: CRUD Chat — Обновление
+# TESTS: CRUD Chat — Update
 # ============================================================
 
+
 class TestChatCRUDUpdate:
-    """Тесты обновления чата"""
+    """Chat update tests."""
 
     @pytest.mark.asyncio
     async def test_pin_chat(self, test_session, test_chat_in_db):
-        """Закрепление чата"""
+        """Pin a chat."""
         updated = await chat_crud.pin_chat(test_session, chat_id=test_chat_in_db.id)
 
         assert updated is not None
@@ -202,8 +207,8 @@ class TestChatCRUDUpdate:
 
     @pytest.mark.asyncio
     async def test_unpin_chat(self, test_session, test_chat_in_db):
-        """Открепление чата"""
-        # Сначала закрепляем
+        """Unpin a chat."""
+        # First pin it
         await chat_crud.pin_chat(test_session, chat_id=test_chat_in_db.id)
 
         updated = await chat_crud.unpin_chat(
@@ -215,14 +220,14 @@ class TestChatCRUDUpdate:
 
     @pytest.mark.asyncio
     async def test_pin_nonexistent_chat_returns_none(self, test_session):
-        """Закрепление несуществующего чата возвращает None"""
+        """Pin non-existent chat returns None."""
         updated = await chat_crud.pin_chat(test_session, chat_id=99999)
 
         assert updated is None
 
     @pytest.mark.asyncio
     async def test_update_chat_model(self, test_session, test_chat_in_db):
-        """Обновление модели чата"""
+        """Update chat model."""
         updated = await chat_crud.update_chat_model(
             test_session, chat_id=test_chat_in_db.id, model="gpt-4o"
         )
@@ -232,7 +237,7 @@ class TestChatCRUDUpdate:
 
     @pytest.mark.asyncio
     async def test_update_chat_provider_and_model(self, test_session, test_chat_in_db):
-        """Обновление провайдера и модели чата"""
+        """Update chat provider and model."""
         updated = await chat_crud.update_chat_provider_and_model(
             test_session,
             chat_id=test_chat_in_db.id,
@@ -246,7 +251,7 @@ class TestChatCRUDUpdate:
 
     @pytest.mark.asyncio
     async def test_update_chat_position(self, test_session, test_chat_in_db):
-        """Обновление позиции чата"""
+        """Update chat position."""
         updated = await chat_crud.update_chat_position(
             test_session, chat_id=test_chat_in_db.id, position=5
         )
@@ -256,7 +261,7 @@ class TestChatCRUDUpdate:
 
     @pytest.mark.asyncio
     async def test_update_nonexistent_chat_returns_none(self, test_session):
-        """Обновление несуществующего чата возвращает None"""
+        """Update non-existent chat returns None."""
         updated = await chat_crud.update_chat_model(
             test_session, chat_id=99999, model="gpt-4"
         )
@@ -265,58 +270,60 @@ class TestChatCRUDUpdate:
 
 
 # ============================================================
-# ТЕСТЫ: CRUD Chat — Удаление
+# TESTS: CRUD Chat — Delete
 # ============================================================
 
+
 class TestChatCRUDDelete:
-    """Тесты удаления чата"""
+    """Chat deletion tests."""
 
     @pytest.mark.asyncio
     async def test_delete_chat_success(self, test_session, test_chat_in_db):
-        """Чат успешно удаляется"""
+        """Chat is successfully deleted."""
         deleted = await chat_crud.delete_chat(test_session, chat_id=test_chat_in_db.id)
 
-        # delete возвращает True/False, не объект
+        # delete returns True/False, not an object
         assert deleted is True
 
-        # Проверяем что чат удалён
+        # Check that chat is deleted
         chat = await chat_crud.get_chat(test_session, chat_id=test_chat_in_db.id)
         assert chat is None
 
     @pytest.mark.asyncio
     async def test_delete_nonexistent_chat_returns_false(self, test_session):
-        """Удаление несуществующего чата возвращает False"""
+        """Delete non-existent chat returns False."""
         result = await chat_crud.delete_chat(test_session, chat_id=99999)
 
         assert result is False
 
 
 # ============================================================
-# ТЕСТЫ: CRUD Chat — Связь User-Chat
+# TESTS: CRUD Chat — User-Chat Relationship
 # ============================================================
 
+
 class TestChatUserRelationship:
-    """Тесты связи между пользователем и чатами"""
+    """User-Chat relationship tests."""
 
     @pytest.mark.asyncio
     async def test_chats_deleted_when_user_deleted(
         self, test_session, test_user_in_db, test_chat_in_db
     ):
-        """При удалении пользователя его чаты тоже удаляются (cascade)"""
+        """When user is deleted, their chats are also deleted (cascade)."""
         user_id = test_user_in_db.id
         chat_id = test_chat_in_db.id
 
-        # Удаляем пользователя
-        await user_crud.delete_user(test_session, user_id=user_id)
+        # Delete user
+        await user_crud.delete_user(test_session, user_id=user_id)  # type: ignore
 
-        # Чат должен удалиться из-за cascade
+        # Chat should be deleted due to cascade
         chat = await chat_crud.get_chat(test_session, chat_id=chat_id)
         assert chat is None
 
     @pytest.mark.asyncio
     async def test_user_has_chats_relationship(self, test_session, test_user_in_db):
-        """У пользователя есть связь с чатами"""
-        # Создаём чаты
+        """User has chats relationship."""
+        # Create chats
         for i in range(2):
             await chat_crud.create(
                 test_session,
@@ -328,7 +335,7 @@ class TestChatUserRelationship:
                 },
             )
 
-        # Получаем пользователя с чатами
+        # Get user with chats
         from sqlalchemy.orm import selectinload
         from sqlalchemy import select
 
@@ -339,4 +346,4 @@ class TestChatUserRelationship:
         )
         user = result.scalar_one()
 
-        assert len(user.chats) == 3  # test_chat_in_db + 2 новых
+        assert len(user.chats) == 3  # test_chat_in_db + 2 new

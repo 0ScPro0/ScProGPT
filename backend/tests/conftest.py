@@ -1,9 +1,9 @@
 """
-Глобальные фикстуры для pytest.
+Global fixtures for pytest.
 
-Этот файл содержит фикстуры, доступные во всех тестах.
-Фикстуры — это предварительно настроенные объекты, которые
-переиспользуются между тестами (сессия БД, тестовые данные, моки).
+This file contains fixtures available in all tests.
+Fixtures are pre-configured objects that are reused
+between tests (DB session, test data, mocks).
 """
 
 import pytest
@@ -13,35 +13,35 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from database.models.base import Base
-from database.models.user import User
-from database.models.chat import Chat
-from database.models.message import Message
-from database.crud.user import CRUDUser, user_crud
-from database.crud.chat import CRUDChat, chat_crud
-from database.crud.message import CRUDMessage, message_crud
-from services.auth import AuthService
-from core.config import settings
-from core.security import hash_password, create_access_token, create_refresh_token
-from schemas.auth import SignUpRequest, SignInRequest
+from database.models.base import Base  # type: ignore
+from database.models.user import User  # type: ignore
+from database.models.chat import Chat  # type: ignore
+from database.models.message import Message  # type: ignore
+from database.crud.user import CRUDUser, user_crud  # type: ignore
+from database.crud.chat import CRUDChat, chat_crud  # type: ignore
+from database.crud.message import CRUDMessage, message_crud  # type: ignore
+from services.auth import AuthService  # type: ignore
+from core.config import settings  # type: ignore
+from core.security import hash_password, create_access_token, create_refresh_token  # type: ignore
+from schemas.auth import SignUpRequest, SignInRequest  # type: ignore
 
 
 # ============================================================
-# ТЕСТОВАЯ БАЗА ДАННЫХ (SQLite in-memory)
+# TEST DB (SQLite in-memory)
 # ============================================================
 
 
 @pytest.fixture(scope="session")
 def anyio_backend():
-    """Используем asyncio бэкенд для async тестов"""
+    """Use asyncio backend for async tests."""
     return "asyncio"
 
 
 @pytest.fixture(scope="session")
 def test_db_url():
     """
-    URL для тестовой БД — SQLite в памяти.
-    Не требует установки PostgreSQL.
+    URL for test DB — SQLite in memory.
+    Do not required to install PostgreSQL.
     """
     return "sqlite+aiosqlite:///:memory:"
 
@@ -49,22 +49,22 @@ def test_db_url():
 @pytest_asyncio.fixture(scope="function")
 async def test_engine(test_db_url):
     """
-    Создаёт движок тестовой БД.
-    scope="function" — новая БД для каждого теста.
+    Create test DB engine.
+    scope="function" — new DB for every test.
     """
     engine = create_async_engine(
         url=test_db_url,
         echo=False,
-        poolclass=StaticPool,  # Один пул для всей сессии
+        poolclass=StaticPool,  # One connection for all sessions
     )
 
-    # Создаём все таблицы
+    # Create all tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine
 
-    # Удаляем все таблицы после теста
+    # Drop tables after test
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
@@ -74,8 +74,8 @@ async def test_engine(test_db_url):
 @pytest_asyncio.fixture(scope="function")
 async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
     """
-    Возвращает сессию тестовой БД.
-    Автоматически делает rollback после теста — данные не сохраняются.
+    Return test DB session.
+    Automatically rolls back after each test — data is not persisted.
     """
     session_factory = async_sessionmaker(
         bind=test_engine,
@@ -90,32 +90,32 @@ async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 
 
 # ============================================================
-# FIXTURES: CRUD-объекты
+# FIXTURES: CRUD objects
 # ============================================================
 
 
 @pytest.fixture
 def user_crud_instance():
-    """Экземпляр CRUDUser для использования в сервисах"""
+    """CRUDUser instance for use in services."""
     return CRUDUser(User)
 
 
 @pytest.fixture
 def chat_crud_instance():
-    """Экземпляр CRUDChat для использования в сервисах"""
+    """CRUDChat instance for use in services."""
     return CRUDChat(Chat)
 
 
 # ============================================================
-# FIXTURES: Тестовые данные (фабрики)
+# FIXTURES: Test data (factories)
 # ============================================================
 
 
 @pytest.fixture
 def unique_email():
     """
-    Генерирует уникальный email для каждого теста.
-    Используется через pytest generate unique values.
+    Generate a unique email for each test.
+    Uses pytest to generate unique values.
     """
     import uuid
 
@@ -125,8 +125,8 @@ def unique_email():
 @pytest.fixture
 def user_data_factory():
     """
-    Фабрика данных для создания пользователя.
-    Каждый вызов генерирует УНИКАЛЬНЫЕ email и username.
+    Factory for creating user data.
+    Each call generates UNIQUE email and username.
     """
     import uuid
 
@@ -145,7 +145,7 @@ def user_data_factory():
 
 @pytest.fixture
 def signup_request_factory(user_data_factory):
-    """Фабрика SignUpRequest для тестов авторизации"""
+    """SignUpRequest factory for auth tests."""
 
     def _make_signup_request(**overrides):
         data = user_data_factory(**overrides)
@@ -156,7 +156,7 @@ def signup_request_factory(user_data_factory):
 
 @pytest.fixture
 def signin_request_factory(user_data_factory):
-    """Фабрика SignInRequest для тестов авторизации"""
+    """SignInRequest factory for auth tests."""
 
     def _make_signin_request(**overrides):
         email = overrides.get("email", user_data_factory()["email"])
@@ -167,29 +167,29 @@ def signin_request_factory(user_data_factory):
 
 
 # ============================================================
-# FIXTURES: Сервисы
+# FIXTURES: Services
 # ============================================================
 
 
 @pytest_asyncio.fixture
 async def auth_service(test_session, user_crud_instance):
     """
-    Экземпляр AuthService с тестовой сессией БД.
-    Используется в integration тестах авторизации.
+    AuthService instance with test DB session.
+    Used in auth integration tests.
     """
     return AuthService(session=test_session, user_crud=user_crud_instance)
 
 
 # ============================================================
-# FIXTURES: Готовые пользователи в БД
+# FIXTURES: Pre-populated users in DB
 # ============================================================
 
 
 @pytest_asyncio.fixture
 async def test_user_in_db(test_session, user_data_factory):
     """
-    Создаёт пользователя в тестовой БД и возвращает его.
-    Пароль хешируется.
+    Create a user in test DB and return it.
+    Password is hashed.
     """
     data = user_data_factory()
     hashed_pw = hash_password(data["password"])
@@ -212,7 +212,7 @@ async def test_user_in_db(test_session, user_data_factory):
 
 @pytest_asyncio.fixture
 async def admin_user_in_db(test_session, user_data_factory):
-    """Созёт суперпользователя в тестовой БД"""
+    """Create a superuser in test DB."""
     data = user_data_factory(username="admin_test")
     hashed_pw = hash_password(data["password"])
 
@@ -233,13 +233,13 @@ async def admin_user_in_db(test_session, user_data_factory):
 
 
 # ============================================================
-# FIXTURES: Тестовые чаты
+# FIXTURES: Test chats
 # ============================================================
 
 
 @pytest_asyncio.fixture
 async def test_chat_in_db(test_session, test_user_in_db):
-    """Создаёт чат в БД, привязанный к test_user_in_db"""
+    """Create a chat in DB linked to test_user_in_db."""
     chat = Chat(
         user_id=test_user_in_db.id,
         title="Test Chat",

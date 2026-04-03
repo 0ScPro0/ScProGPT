@@ -1,37 +1,38 @@
 """
-Integration тесты для AuthService.
+Integration tests for AuthService.
 
-Тестируем полный цикл авторизации:
-- Регистрация (signup)
-- Вход (signin)
-- Обновление токена (refresh_token)
-- Выход (logout)
-- Ошибки авторизации
+Tests cover the full auth cycle:
+- Signup
+- Signin
+- Token refresh
+- Logout
+- Auth errors
 """
 
 import pytest
 import pytest_asyncio
 
-from core.exceptions import AuthError
-from core.security import decode_token, hash_password, verify_password
-from schemas.auth import SignUpRequest, SignInRequest
+from core.exceptions import AuthError  # type: ignore
+from core.security import decode_token, hash_password, verify_password  # type: ignore
+from schemas.auth import SignUpRequest, SignInRequest  # type: ignore
 
 
 # ============================================================
-# ТЕСТЫ: Регистрация (Signup)
+# TESTS: Signup
 # ============================================================
+
 
 class TestAuthSignup:
-    """Тесты регистрации пользователя"""
+    """User registration tests."""
 
     @pytest.mark.asyncio
     async def test_signup_success(self, auth_service, signup_request_factory):
-        """Успешная регистрация нового пользователя"""
+        """Successful registration of a new user."""
         request = signup_request_factory()
 
         response = await auth_service.signup(request)
 
-        # Проверяем ответ
+        # Check response
         assert response.access_token is not None
         assert response.refresh_token is not None
         assert response.user.email == request.email
@@ -43,7 +44,7 @@ class TestAuthSignup:
     async def test_signup_creates_user_in_db(
         self, auth_service, signup_request_factory, test_session, user_crud
     ):
-        """Регистрация создаёт пользователя в БД"""
+        """Signup creates a user in DB."""
         request = signup_request_factory()
 
         await auth_service.signup(request)
@@ -56,7 +57,7 @@ class TestAuthSignup:
     async def test_signup_password_is_hashed(
         self, auth_service, signup_request_factory, test_session, user_crud
     ):
-        """Пароль сохраняется в хешированном виде"""
+        """Password is saved in hashed form."""
         request = signup_request_factory()
 
         await auth_service.signup(request)
@@ -69,7 +70,7 @@ class TestAuthSignup:
     async def test_signup_user_is_active_by_default(
         self, auth_service, signup_request_factory, test_session, user_crud
     ):
-        """Зарегистрированный пользователь активен"""
+        """Registered user is active."""
         request = signup_request_factory()
 
         await auth_service.signup(request)
@@ -81,7 +82,7 @@ class TestAuthSignup:
     async def test_signup_user_is_not_superuser(
         self, auth_service, signup_request_factory, test_session, user_crud
     ):
-        """Зарегистрированный пользователь не суперюзер"""
+        """Registered user is not a superuser."""
         request = signup_request_factory()
 
         await auth_service.signup(request)
@@ -93,7 +94,7 @@ class TestAuthSignup:
     async def test_signup_duplicate_email_raises_error(
         self, auth_service, signup_request_factory, test_user_in_db
     ):
-        """Регистрация с уже существующим email вызывает ошибку"""
+        """Signup with existing email raises error."""
         request = signup_request_factory(email=test_user_in_db.email)
 
         with pytest.raises(AuthError) as exc_info:
@@ -105,7 +106,7 @@ class TestAuthSignup:
     async def test_signup_returns_jwt_tokens_with_correct_user_id(
         self, auth_service, signup_request_factory
     ):
-        """Токены содержат правильный user_id"""
+        """Tokens contain correct user_id."""
         request = signup_request_factory()
 
         response = await auth_service.signup(request)
@@ -120,7 +121,7 @@ class TestAuthSignup:
     async def test_signup_stores_refresh_token_in_db(
         self, auth_service, signup_request_factory, test_session, user_crud
     ):
-        """Refresh токен сохраняется в БД"""
+        """Refresh token is saved in DB."""
         request = signup_request_factory()
 
         response = await auth_service.signup(request)
@@ -131,18 +132,19 @@ class TestAuthSignup:
 
 
 # ============================================================
-# ТЕСТЫ: Вход (Signin)
+# TESTS: Signin
 # ============================================================
 
+
 class TestAuthSignin:
-    """Тесты входа пользователя"""
+    """User signin tests."""
 
     @pytest.mark.asyncio
     async def test_signin_success(self, auth_service, test_user_in_db):
-        """Успешный вход с правильными данными"""
+        """Successful signin with correct credentials."""
         request = SignInRequest(
             email=test_user_in_db.email,
-            password="TestPassword123!",  # пароль из фикстуры
+            password="TestPassword123!",  # password from fixture
         )
 
         response = await auth_service.signin(request)
@@ -156,7 +158,7 @@ class TestAuthSignin:
     async def test_signin_wrong_password_raises_error(
         self, auth_service, test_user_in_db
     ):
-        """Вход с неправильным паролем вызывает ошибку"""
+        """Signin with wrong password raises error."""
         request = SignInRequest(
             email=test_user_in_db.email,
             password="WrongPassword456!",
@@ -169,7 +171,7 @@ class TestAuthSignin:
 
     @pytest.mark.asyncio
     async def test_signin_nonexistent_email_raises_error(self, auth_service):
-        """Вход с несуществующим email вызывает ошибку"""
+        """Signin with non-existent email raises error."""
         request = SignInRequest(
             email="nonexistent@example.com",
             password="SomePassword123!",
@@ -184,8 +186,8 @@ class TestAuthSignin:
     async def test_signin_deactivated_user_raises_error(
         self, auth_service, test_user_in_db, user_crud, test_session
     ):
-        """Вход деактивированного пользователя вызывает ошибку"""
-        # Деактивируем пользователя
+        """Signin for deactivated user raises error."""
+        # Deactivate user
         await user_crud.deactivate(test_session, user_id=test_user_in_db.id)
 
         request = SignInRequest(
@@ -202,10 +204,12 @@ class TestAuthSignin:
     async def test_signin_updates_refresh_token_in_db(
         self, auth_service, test_user_in_db, test_session, user_crud
     ):
-        """Вход обновляет refresh токен в БД"""
+        """Signin updates refresh token in DB."""
         old_token = "old_refresh_token"
         await user_crud.update_refresh_token(
-            test_session, user_id=test_user_in_db.id, refresh_token=old_token,
+            test_session,
+            user_id=test_user_in_db.id,
+            refresh_token=old_token,
             expires_at=None,
         )
 
@@ -224,7 +228,7 @@ class TestAuthSignin:
     async def test_signin_returns_tokens_with_correct_type(
         self, auth_service, test_user_in_db
     ):
-        """Токены имеют правильный тип (access/refresh)"""
+        """Tokens have correct type (access/refresh)."""
         request = SignInRequest(
             email=test_user_in_db.email,
             password="TestPassword123!",
@@ -240,26 +244,27 @@ class TestAuthSignin:
 
 
 # ============================================================
-# ТЕСТЫ: Обновление токена (Refresh)
+# TESTS: Token Refresh
 # ============================================================
 
+
 class TestAuthRefresh:
-    """Тесты обновления токена"""
+    """Token refresh tests."""
 
     @pytest.mark.asyncio
     async def test_refresh_token_success(
         self, auth_service, test_user_in_db, test_session, user_crud
     ):
-        """Успешное обновление access токена"""
+        """Successful access token refresh."""
         from datetime import datetime, timedelta, timezone
-        from core.security import create_refresh_token
-        from schemas.auth import TokenRefreshRequest
+        from core.security import create_refresh_token  # type: ignore
+        from schemas.auth import TokenRefreshRequest  # type: ignore
 
-        # Создаём refresh токен
+        # Create refresh token
         refresh_token = create_refresh_token({"sub": str(test_user_in_db.id)})
         expires_at = datetime.now(timezone.utc) + timedelta(days=7)
 
-        # Сохраняем в БД
+        # Save to DB
         await user_crud.update_refresh_token(
             test_session,
             user_id=test_user_in_db.id,
@@ -275,8 +280,8 @@ class TestAuthRefresh:
 
     @pytest.mark.asyncio
     async def test_refresh_with_fake_token_raises_error(self, auth_service):
-        """Обновление с поддельным токеном вызывает ошибку"""
-        from schemas.auth import TokenRefreshRequest
+        """Refresh with fake token raises error."""
+        from schemas.auth import TokenRefreshRequest  # type: ignore
 
         request = TokenRefreshRequest(refresh_token="fake.token.here")
 
@@ -289,16 +294,16 @@ class TestAuthRefresh:
     async def test_refresh_with_wrong_stored_token_raises_error(
         self, auth_service, test_user_in_db, test_session, user_crud
     ):
-        """Обновление с токеном, не совпадающим с БД, вызывает ошибку"""
+        """Refresh with token not matching DB raises error."""
         from datetime import datetime, timedelta, timezone
-        from core.security import create_refresh_token
-        from schemas.auth import TokenRefreshRequest
+        from core.security import create_refresh_token  # type: ignore
+        from schemas.auth import TokenRefreshRequest  # type: ignore
 
-        # Создаём один токен
+        # Create a token
         refresh_token = create_refresh_token({"sub": str(test_user_in_db.id)})
         expires_at = datetime.now(timezone.utc) + timedelta(days=7)
 
-        # Но сохраняем другой
+        # But save a different one
         await user_crud.update_refresh_token(
             test_session,
             user_id=test_user_in_db.id,
@@ -315,21 +320,22 @@ class TestAuthRefresh:
 
 
 # ============================================================
-# ТЕСТЫ: Выход (Logout)
+# TESTS: Logout
 # ============================================================
 
+
 class TestAuthLogout:
-    """Тесты выхода пользователя"""
+    """User logout tests."""
 
     @pytest.mark.asyncio
     async def test_logout_clears_refresh_token(
         self, auth_service, test_user_in_db, test_session, user_crud
     ):
-        """Logout очищает refresh токен в БД"""
+        """Logout clears refresh token in DB."""
         from datetime import datetime, timedelta, timezone
-        from core.security import create_refresh_token
+        from core.security import create_refresh_token  # type: ignore
 
-        # Устанавливаем refresh токен
+        # Set refresh token
         refresh_token = create_refresh_token({"sub": str(test_user_in_db.id)})
         expires_at = datetime.now(timezone.utc) + timedelta(days=7)
         await user_crud.update_refresh_token(
@@ -339,43 +345,44 @@ class TestAuthLogout:
             expires_at=expires_at,
         )
 
-        # Выходим
+        # Logout
         result = await auth_service.logout(test_user_in_db.id)
 
         assert result is True
 
-        # Проверяем что токен очищен
+        # Check that token is cleared
         user = await user_crud.get(test_session, test_user_in_db.id)
         assert user.refresh_token is None
         assert user.refresh_token_expires_at is None
 
     @pytest.mark.asyncio
     async def test_logout_nonexistent_user(self, auth_service):
-        """Logout несуществующего пользователя не вызывает ошибку"""
+        """Logout for non-existent user does not raise error."""
         result = await auth_service.logout(99999)
 
         assert result is True
 
 
 # ============================================================
-# ТЕСТЫ: Edge cases
+# TESTS: Edge cases
 # ============================================================
 
+
 class TestAuthEdgeCases:
-    """Граничные случаи и дополнительные проверки"""
+    """Edge cases and additional checks."""
 
     @pytest.mark.asyncio
     async def test_signup_and_signin_flow(
         self, auth_service, signup_request_factory, test_session, user_crud
     ):
-        """Полный цикл: регистрация → вход"""
-        # Регистрируемся
+        """Full cycle: signup → signin."""
+        # Signup
         signup_request = signup_request_factory()
         signup_response = await auth_service.signup(signup_request)
 
         assert signup_response.user.email == signup_request.email
 
-        # Выходим и входим снова
+        # Signin again
         signin_request = SignInRequest(
             email=signup_request.email,
             password=signup_request.password,
@@ -388,7 +395,7 @@ class TestAuthEdgeCases:
     async def test_multiple_signups_with_different_emails(
         self, auth_service, signup_request_factory
     ):
-        """Можно зарегистрировать несколько пользователей"""
+        """Multiple users can be registered."""
         user1 = await auth_service.signup(signup_request_factory())
         user2 = await auth_service.signup(signup_request_factory())
 
@@ -399,7 +406,7 @@ class TestAuthEdgeCases:
     async def test_signin_returns_same_user_id_as_signup(
         self, auth_service, signup_request_factory
     ):
-        """ID пользователя при signup и signin совпадает"""
+        """User ID matches between signup and signin."""
         signup_response = await auth_service.signup(signup_request_factory())
 
         signin_request = SignInRequest(
