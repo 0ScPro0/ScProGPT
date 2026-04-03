@@ -3,15 +3,6 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import database, User, chat_crud, message_crud, user_crud
-from schemas.auth import (
-    SignInRequest,
-    SignUpRequest,
-    SignInResponse,
-    SignUpResponse,
-    Token,
-    TokenRefreshRequest,
-    TokenRefreshResponse,
-)
 from schemas.user import UserSchema, UserResponse
 from services.auth import AuthService
 from services.chat import ChatService
@@ -66,13 +57,6 @@ async def get_ai_service(
 
 
 __all__ = [
-    "SignInRequest",
-    "SignUpRequest",
-    "Token",
-    "TokenRefreshRequest",
-    "TokenRefreshResponse",
-    "SignInResponse",
-    "SignUpResponse",
     "AuthService",
     "UserService",
     "UserSchema",

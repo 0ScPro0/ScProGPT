@@ -228,11 +228,14 @@ class AuthService:
             raise AuthError("Invalid refresh token")
 
         # Check if stored refresh token is expired
-        if (
-            user_object.refresh_token_expires_at
-            and user_object.refresh_token_expires_at < datetime.now(timezone.utc)
-        ):
-            raise AuthError("Refresh token expired")
+        if user_object.refresh_token_expires_at:
+            # Convert to aware datetime if necessary
+            expires_at = user_object.refresh_token_expires_at
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+            if expires_at < datetime.now(timezone.utc):
+                raise AuthError("Refresh token expired")
 
         # Create new access token
         new_access_token = create_access_token({"sub": str(user_object.id)})
