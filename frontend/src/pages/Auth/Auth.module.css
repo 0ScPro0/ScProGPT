@@ -1,0 +1,28 @@
+.auth {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    min-height: 100vh; 
+    height: 100%;       
+    background-color: var(--bg-color-chat);
+}
+
+.auth_box {
+    border: var(--border);
+    border-radius: 35px;
+
+    width: 500px;
+    height: 720px;
+
+    box-shadow: var(--glow-box);
+    background-color: var(--bg-color);
+}
+
+.auth_box_wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 50px;
+}
