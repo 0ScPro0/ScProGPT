@@ -6,6 +6,7 @@
     grid-template-columns: 300px 1fr;
     grid-template-rows: auto 1fr;
     min-height: 100vh;
+    background-color: var(--bg-color-chat);
 }
 
 .home > :first-child { /* Sidebar */
@@ -29,4 +30,5 @@
     overflow-x: hidden;
 
     background-color: var(--bg-color);
+    background-color: var(--bg-color-chat);
 }
