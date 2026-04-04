@@ -1,25 +1,35 @@
  /* DARK THEME */
 [data-theme="dark"] {
     --bg-color: rgb(0, 0, 0);
+    --bg-color-chat: rgb(0, 0, 0);
     --bg-color-07: rgba(0, 0, 0, 0.7);
     --icon-color: rgb(255, 255, 255); 
     --text-color: rgb(255, 255, 255);
     --border: 1px solid rgb(255, 255, 255);
     --scrollbar-color: rgb(255, 255, 255);
     --user-message-bg-color: rgb(32, 32, 32);
+    --input-color: rgb(23, 23, 23);
     --hover-color: rgb(35, 35, 35);
     --active-color: rgb(52, 52, 52);
+    --glow-box: 0 0 20px rgba(255, 255, 255, 0.3),
+                0 0 40px rgba(255, 255, 255, 0.3),
+                0 0 60px rgba(255, 255, 255, 0.1);
 }
 
 /* LIGHT THEME */
 [data-theme="light"] {
     --bg-color: rgb(255, 255, 255);
+    --bg-color-chat: rgb(242, 242, 242);
     --bg-color-07: rgba(255, 255, 255, 0.7);
     --icon-color: rgb(0, 0, 0);
     --text-color: rgb(0, 0, 0);
     --border: 1px solid rgb(0, 0, 0);
     --scrollbar-color: rgb(0, 0, 0);
     --user-message-bg-color: rgb(218, 218, 218);
+    --input-color: rgb(244, 244, 244);
     --hover-color: rgb(244, 244, 244);
     --active-color: rgb(52, 52, 52);
+    --glow-box: 0 0 40px rgba(0, 0, 0, 0.5),
+                0 0 60px rgba(0, 0, 0, 0.3),
+                0 0 80px rgba(0, 0, 0, 0.1);
 }
