@@ -4,21 +4,21 @@ from pydantic import BaseModel, Field, ConfigDict
 
 
 class BaseChat(BaseModel):
-    title: str = Field(
+    title: Optional[str] = Field(
         default="New chat",
         min_length=1,
         max_length=200,
         description="Chat title displayed to the user",
     )
 
-    model: str = Field(
+    model: Optional[str] = Field(
         default="gpt-4o-mini",
         min_length=1,
         max_length=100,
         description="AI model identifier (gpt-4, claude-3, etc.)",
     )
 
-    provider: str = Field(
+    provider: Optional[str] = Field(
         default="openai",
         min_length=1,
         max_length=50,
