@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-// Инициализация темы из localStorage
+// localStorage theme init
 const getInitialTheme = () => {
     if (typeof window !== 'undefined') {
         return localStorage.getItem('theme') || 'light';
