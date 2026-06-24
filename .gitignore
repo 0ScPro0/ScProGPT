@@ -72,6 +72,7 @@ backend/*.swo
 
 # Other
 backend/tests/prototypes
+backend/test_credentials.json
 count_lines.py
 
 # ==================== FRONTEND (React) ====================
@@ -149,6 +150,9 @@ frontend/.storybook-out/
 # Temporary folders
 frontend/tmp/
 frontend/temp/
+
+# Other
+frontend/templates
 
 # ==================== DOCKER ====================
 
