@@ -3,26 +3,343 @@
     flex-direction: column;
     overflow-x: hidden;
     overflow-y: hidden;
-    min-height: 100vh; 
-    height: 100%;       
+    min-height: 100vh;
+    height: 100%;
     background-color: var(--bg-color-chat);
 }
 
-.auth_box {
-    border: var(--border);
-    border-radius: 35px;
-
-    width: 500px;
-    height: 720px;
-
-    box-shadow: var(--glow-box);
-    background-color: var(--bg-color);
-}
-
-.auth_box_wrapper {
+/* ============================================CONTAINER & CARD======================================================= */
+.container {
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin: 50px;
+    flex: 1;
+    padding: 20px;
+    margin-top: 40px;
+
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    border: var(--border);
+    border-radius: 35px;
+    width: 500px;
+    min-height: 720px;
+    box-shadow: var(--glow-box);
+    background-color: var(--bg-color);
+    padding: 40px 60px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+
+    animation: cardAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ============================================TABS======================================================= */
+.tabs {
+    display: flex;
+    border-bottom: var(--border);
+    margin-bottom: 40px;
+    padding-bottom: 16px;
+}
+
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: Roboto, sans-serif;
+    cursor: pointer;
+    color: #848484;
+    user-select: none;
+    transition: color 0.3s ease;
+}
+
+.tab_active {
+    color: var(--text-color);
+}
+
+.tab:not(.tab_active):hover {
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.tab_divider {
+    width: 1px;
+    background: var(--border-color-muted);
+}
+
+/* ============================================FORM======================================================= */
+.form_group {
+    margin-bottom: 20px;
+
+    animation: formSlideIn 0.4s ease-out both;
+}
+
+.form_group:nth-child(1) { animation-delay: 0.05s; }
+.form_group:nth-child(2) { animation-delay: 0.1s; }
+.form_group:nth-child(3) { animation-delay: 0.15s; }
+
+@keyframes formSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.form_label {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: Roboto, sans-serif;
+    margin-bottom: 8px;
+    color: #848484;
+    transition: color 0.3s ease;
+}
+
+.form_input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--input-color);
+    border: none;
+    border-radius: 9px;
+    color: var(--text-color);
+    font-size: 16px;
+    font-family: Roboto, sans-serif;
+    font-weight: 500;
+    outline: none;
+    box-sizing: border-box;
+    height: 52px;
+
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.form_input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--focus-ring), 0 4px 12px rgba(0, 0, 0, 0.2);
+    background-color: var(--hover-color);
+}
+
+.form_input::placeholder {
+    color: #555;
+    font-weight: 400;
+    transition: color 0.3s ease;
+}
+
+.form_input:focus::placeholder {
+    color: #777;
+}
+
+.password_wrapper {
+    position: relative;
+}
+
+.password_toggle {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: opacity 0.2s ease;
+}
+
+.password_toggle:hover {
+    opacity: 0.7;
+}
+
+.eye_icon {
+    width: 28px;
+    height: 28px;
+    stroke: #848484;
+
+    transition: stroke 0.3s ease, transform 0.3s ease;
+}
+
+.password_toggle:hover .eye_icon {
+    stroke: var(--text-color);
+    opacity: 0.7;
+}
+
+.password_toggle:active .eye_icon {
+    transform: scale(0.9);
+}
+
+/* ============================================REMEMBER ME======================================================= */
+.remember_me {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 36px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: Roboto, sans-serif;
+    color: #848484;
+
+    animation: formSlideIn 0.4s ease-out 0.2s both;
+}
+
+.remember_me input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #848484;
+    cursor: pointer;
+
+    transition: accent-color 0.3s ease, transform 0.2s ease;
+}
+
+.remember_me input[type="checkbox"]:checked {
+    accent-color: var(--text-color);
+}
+
+.remember_me input[type="checkbox"]:active {
+    transform: scale(0.9);
+}
+
+.remember_me label {
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.remember_me label:hover {
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+/* ============================================SUBMIT BUTTON======================================================= */
+.btn_signin {
+    width: 100%;
+    padding: 18px;
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border: var(--btn-primary-border);
+    border-radius: 15px;
+    font-size: 22px;
+    font-weight: 700;
+    font-family: Roboto, sans-serif;
+    cursor: pointer;
+    margin-bottom: 36px;
+
+    transition: opacity 0.2s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+
+    animation: formSlideIn 0.4s ease-out 0.25s both;
+}
+
+.btn_signin:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 20px var(--btn-shadow);
+}
+
+.btn_signin:active {
+    transform: scale(0.97);
+}
+
+/* ============================================DIVIDER======================================================= */
+.divider {
+    text-align: center;
+    margin-bottom: 28px;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: Roboto, sans-serif;
+    color: #848484;
+    position: relative;
+
+    animation: formSlideIn 0.4s ease-out 0.3s both;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: var(--border-color-muted);
+
+    transition: width 0.3s ease;
+}
+
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}
+
+/* ============================================SOCIAL ICONS======================================================= */
+.social_icons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+
+    animation: formSlideIn 0.4s ease-out 0.35s both;
+}
+
+.social_icon {
+    width: 64px;
+    height: 64px;
+    background: var(--input-color);
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    transition: background-color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.social_icon:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.social_icon:active {
+    transform: translateY(-1px) scale(0.95);
+}
+
+.social_icon svg {
+    width: 32px;
+    height: 32px;
+    fill: var(--text-color);
+
+    transition: fill 0.3s ease, transform 0.3s ease;
+}
+
+.social_icon:hover svg {
+    transform: scale(1.1);
 }

@@ -5,7 +5,7 @@ import { useThemeInit } from './hooks/useTheme';
 import { useAuthInit } from "./hooks/useAuth";
 
 function AppContent() {
-    //useAuthInit(); 
+    useAuthInit(); 
     return (
         <Routes>
             <Route path="/" element={<Home />} />
