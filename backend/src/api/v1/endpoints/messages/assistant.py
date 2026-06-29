@@ -37,11 +37,11 @@ router = APIRouter(prefix="/assistant", tags=["messages"])
 @router.post(
     "/create/text",
     response_model=MessageResponse,
-    summary="Create assistant message",
+    summary="Create assistant generation",
     description="Generate a text response from the AI assistant",
 )
 @log
-async def create_assistant_message(
+async def create_assistant_generation(
     request: GenerateRequest,
     chat_id: Optional[int] = Path(..., description="The ID of the chat"),
     ai_service: AIService = Depends(get_ai_service),
@@ -113,11 +113,11 @@ async def create_assistant_message(
 
 @router.post(
     "/create/text/stream",
-    summary="Create assistant message stream",
+    summary="Create assistant streaming generation",
     description="Generate a streaming text response from the AI assistant",
 )
 @log
-async def create_assistant_message_stream(
+async def create_assistant_generation_stream(
     request: GenerateRequest,
     chat_id: Optional[int] = Path(..., description="The ID of the chat"),
     ai_service: AIService = Depends(get_ai_service),
@@ -137,11 +137,6 @@ async def create_assistant_message_stream(
     """
     if not current_user:
         raise AuthError(detail="Not authenticated")
-
-    # If chat_id is not assign, create new chat
-    if not chat_id:
-        new_chat = await chat_service.create_chat(ChatCreate(user_id=current_user.id))
-        chat_id = new_chat.id
 
     if not await chat_service.is_user_has_chat(
         user_id=current_user.id, chat_id=chat_id

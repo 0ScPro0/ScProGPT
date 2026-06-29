@@ -24,7 +24,7 @@ router = APIRouter(prefix="/chats", tags=["chats"])
 
 # Create a new chat
 @router.post(
-    "/create",
+    "/",
     response_model=ChatResponse,
     summary="Create a chat",
     description="Create a chat with the specified user",
@@ -47,7 +47,7 @@ async def create_chat(
 
 # Get all chats for the current user
 @router.get(
-    "/user",
+    "/me",
     summary="Get user chats",
     description="Get all chats for the current user",
     response_model=List[ChatResponse],
@@ -64,7 +64,10 @@ async def get_user_chats(
 
 
 # Update chat provider
-@router.patch("/{chat_id}/update/provider", response_model=OperationResponse)
+@router.patch(
+    "/{chat_id}/provider",
+    response_model=OperationResponse,
+)
 @log
 async def update_chat_provider(
     chat_id: int,
@@ -87,7 +90,7 @@ async def update_chat_provider(
 
 
 # Update chat model
-@router.patch("/{chat_id}/update/model", response_model=OperationResponse)
+@router.patch("/{chat_id}/model", response_model=OperationResponse)
 @log
 async def update_chat_model(
     chat_id: int,
@@ -108,7 +111,7 @@ async def update_chat_model(
 
 
 # Update chat title
-@router.patch("/{chat_id}/update/title", response_model=OperationResponse)
+@router.patch("/{chat_id}/title", response_model=OperationResponse)
 @log
 async def update_chat_title(
     chat_id: int,
@@ -128,7 +131,7 @@ async def update_chat_title(
 
 
 # Get chat current provider status
-@router.get("/{chat_id}/provider", response_model=ProviderStatus)
+@router.get("/{chat_id}/status", response_model=ProviderStatus)
 @log
 async def get_provider_status(
     chat_id: int,
@@ -151,7 +154,7 @@ async def get_provider_status(
 
 # Delete chat
 @router.delete(
-    "/{chat_id}/delete",
+    "/{chat_id}",
     summary="Delete chat by id",
     description="Delete chat by id",
     response_model=ChatResponse,
