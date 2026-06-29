@@ -3,21 +3,24 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from database import Base, CRUDBase, Message, CRUDMessage, message_crud
+from database import Base, Message
+from repositories import MessageRepository
 from services.base import BaseService
 from schemas.message import MessageSchema, MessageResponse, MessageCreate, MessageUpdate
 from schemas.ai import UserMessage, AssistantMessage
 from utils.logger import log
 
 
-class MessageService(BaseService[Message, MessageCreate, MessageUpdate, CRUDMessage]):
-    def __init__(self, session: AsyncSession, message_crud: CRUDMessage):
-        super().__init__(crud=message_crud, session=session)
+class MessageService(
+    BaseService[Message, MessageCreate, MessageUpdate, MessageRepository]
+):
+    def __init__(self, session: AsyncSession, message_repository: MessageRepository):
+        super().__init__(repository=message_repository, session=session)
 
     @log
     async def create_message(self, message: MessageCreate) -> MessageResponse:
         """Create a new message in the specified chat."""
-        new_message = await self.crud.create_message(
+        new_message = await self.repository.create_message(
             session=self.session, message_object=message
         )
         return MessageResponse.model_validate(new_message)
@@ -25,7 +28,9 @@ class MessageService(BaseService[Message, MessageCreate, MessageUpdate, CRUDMess
     @log
     async def get_message(self, message_id: int):
         """Get a message by id."""
-        return await self.crud.get_message(session=self.session, message_id=message_id)
+        return await self.repository.get_message(
+            session=self.session, message_id=message_id
+        )
 
     @log
     async def get_chat_messages(
@@ -41,7 +46,7 @@ class MessageService(BaseService[Message, MessageCreate, MessageUpdate, CRUDMess
             List of UserMessage and AssistantMessage
         """
         # Get messages
-        messages = await self.crud.get_chat_messages(
+        messages = await self.repository.get_chat_messages(
             session=self.session, chat_id=chat_id
         )
 
@@ -71,7 +76,7 @@ class MessageService(BaseService[Message, MessageCreate, MessageUpdate, CRUDMess
             List of MessageResponse
         """
         # Get messages
-        messages = await self.crud.get_chat_messages(
+        messages = await self.repository.get_chat_messages(
             session=self.session, chat_id=chat_id
         )
 

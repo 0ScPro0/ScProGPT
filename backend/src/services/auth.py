@@ -14,7 +14,8 @@ from core.security import (
     verify_password,
     decode_token,
 )
-from database import User, CRUDUser, user_crud
+from database import User
+from repositories import UserRepository
 from schemas.auth import (
     SignInRequest,
     SignUpRequest,
@@ -31,9 +32,9 @@ from services.base import BaseService
 class AuthService:
     """Service for authentication and authorization"""
 
-    def __init__(self, session: AsyncSession, user_crud: CRUDUser):
+    def __init__(self, session: AsyncSession, user_repository: UserRepository):
         self.session = session
-        self.user_crud = user_crud
+        self.user_repository = user_repository
 
     @log
     async def signup(self, user: SignUpRequest):
@@ -50,7 +51,7 @@ class AuthService:
             User: Created user
         """
         # Check if user with the same email already exists
-        if await self.user_crud.get_by_email(self.session, user.email):
+        if await self.user_repository.get_by_email(self.session, user.email):
             raise AuthError("User with this email already exists")
 
         # Hash password
@@ -66,7 +67,7 @@ class AuthService:
         }
 
         # Create user in database
-        user_object = await self.user_crud.create_user(
+        user_object = await self.user_repository.create_user(
             session=self.session, user_object=user_create_data
         )
 
@@ -84,7 +85,7 @@ class AuthService:
             refresh_token_expires_at = datetime.fromtimestamp(
                 refresh_token_payload["exp"], tz=timezone.utc
             )
-            await self.user_crud.update_refresh_token(
+            await self.user_repository.update_refresh_token(
                 session=self.session,
                 user_id=user_object.id,
                 refresh_token=refresh_token,
@@ -115,7 +116,7 @@ class AuthService:
             dict: User data and tokens
         """
         # Get user by email
-        user_object = await self.user_crud.get_by_email(self.session, user.email)
+        user_object = await self.user_repository.get_by_email(self.session, user.email)
         if not user_object:
             raise AuthError("Invalid credentials")
 
@@ -124,7 +125,9 @@ class AuthService:
             raise AuthError("Invalid credentials")
 
         # Check if user is active
-        if not await self.user_crud.is_active(self.session, user_id=user_object.id):
+        if not await self.user_repository.is_active(
+            self.session, user_id=user_object.id
+        ):
             raise AuthError("User is deactivated")
 
         # Create tokens
@@ -143,7 +146,7 @@ class AuthService:
             refresh_token_expires_at = datetime.fromtimestamp(
                 refresh_token_payload["exp"], tz=timezone.utc
             )
-            await self.user_crud.update_refresh_token(
+            await self.user_repository.update_refresh_token(
                 session=self.session,
                 user_id=user_object.id,
                 refresh_token=refresh_token,
@@ -215,12 +218,14 @@ class AuthService:
             raise AuthError("Invalid refresh token")
 
         # Get user from database
-        user_object = await self.user_crud.get(self.session, user_id)
+        user_object = await self.user_repository.get(self.session, user_id)
         if not user_object:
             raise AuthError("User not found")
 
         # Check if user is active
-        if not await self.user_crud.is_active(self.session, user_id=user_object.id):
+        if not await self.user_repository.is_active(
+            self.session, user_id=user_object.id
+        ):
             raise AuthError("User is deactivated")
 
         # Verify refresh token matches stored token
@@ -259,6 +264,8 @@ class AuthService:
             bool: True if successful
         """
         # Clear refresh token in database
-        await self.user_crud.clear_refresh_token(session=self.session, user_id=user_id)
+        await self.user_repository.clear_refresh_token(
+            session=self.session, user_id=user_id
+        )
 
         return True

@@ -1,8 +1,7 @@
-# backend/src/core/logger.py
 import logging
 import functools
 from datetime import datetime
-from typing import Callable, Any, TypeVar, overload, Awaitable, cast
+from typing import Callable, TypeVar, Awaitable, cast
 from typing_extensions import ParamSpec
 import inspect
 import sys
@@ -38,11 +37,11 @@ def log(func: Callable[P, R]) -> Callable[P, R]:
     - Execution time
 
     Usage:
-        ```python
-        @log
-        async def my_function(arg1, arg2):
-            ...
-        ```
+    ```python
+    @log
+    async def my_function(arg1, arg2):
+        ...
+    ```
     """
 
     def _log_call(
@@ -110,12 +109,20 @@ def log(func: Callable[P, R]) -> Callable[P, R]:
     return sync_wrapper  # type: ignore[return-value]
 
 
-def log_database_queries(func: Callable) -> Callable:
+def log_database_queries(func: Callable[P, R]) -> Callable[P, R]:
     """Decorator for logging SQL queries"""
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        logger.info(f"DATABASE {func.__name__} called")
+        return await cast(Awaitable[R], func(*args, **kwargs))
+
+    @functools.wraps(func)
+    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         logger.info(f"DATABASE {func.__name__} called")
         return func(*args, **kwargs)
 
-    return wrapper
+    # Return the appropriate wrapper based on the function type
+    if inspect.iscoroutinefunction(func):
+        return async_wrapper  # type: ignore[return-value]
+    return sync_wrapper  # type: ignore[return-value]

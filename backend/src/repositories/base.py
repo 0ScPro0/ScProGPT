@@ -1,8 +1,8 @@
 from typing import Any, Dict, Generic, List, Optional, Set, Type, TypeVar, Union
 from pydantic import BaseModel
-from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, or_
+from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.expression import func
 
 from utils.logger import logger, log_database_queries
@@ -13,7 +13,7 @@ CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 
-class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
+class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     """Base class for CRUD operations"""
 
     def __init__(self, model: Type[ModelType]):
@@ -21,7 +21,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     @log_database_queries
-    async def get(self, session: AsyncSession, id: Any) -> Optional[ModelType]:
+    async def get(
+        self, session: AsyncSession, id: Any, relationships: Optional[List[str]] = None
+    ) -> Optional[ModelType]:
         """
         Get object by id
 
@@ -32,7 +34,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         Returns:
             Object or None if not found
         """
-        result = await session.execute(select(self.model).where(self.model.id == id))
+        query = select(self.model).where(self.model.id == id)
+
+        # Loading related objects
+        if relationships:
+            for rel in relationships:
+                query = query.options(selectinload(getattr(self.model, rel)))
+
+        result = await session.execute(query)
         return result.scalar_one_or_none()
 
     @log_database_queries
@@ -43,6 +52,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         skip: int = 0,
         limit: int = 100,
         order_by: Optional[Any],
+        relationships: Optional[List[str]] = None,
     ) -> List[ModelType]:
         """
         Get object list with pagination
@@ -52,6 +62,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             skip: Skip number of objects
             limit: Limit number of objects
             order_by: Order by field
+            relationships: List of relationship names to load
 
         Returns:
             List of objects
@@ -61,13 +72,18 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if order_by is not None:
             query = query.order_by(order_by)
 
+        # Loading related objects
+        if relationships:
+            for rel in relationships:
+                query = query.options(selectinload(getattr(self.model, rel)))
+
         query = query.offset(skip).limit(limit)
         result = await session.execute(query)
         return list(result.scalars().all())
 
     @log_database_queries
     async def get_by_field(
-        self, session: AsyncSession, field_name: str, field_value: Any
+        self, session: AsyncSession, *, field_name: str, field_value: Any
     ) -> Optional[ModelType]:
         """
         Get object by field value (email, username etc.)
@@ -99,6 +115,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         field_value: Any,
         skip: int = 0,
         limit: int = 100,
+        order_by: Any = None,
+        relationships: List[str] = None,
     ) -> List[ModelType]:
         """
         Get many objects by field value
@@ -118,12 +136,109 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 f"Model {self.model.__name__} has no field {field_name}"
             )
 
-        result = await session.execute(
+        if not order_by:
+            order_by = self.model.id
+
+        query = (
             select(self.model)
             .where(getattr(self.model, field_name) == field_value)
             .offset(skip)
             .limit(limit)
+            .order_by(order_by)
         )
+
+        # Loading related objects
+        if relationships:
+            for rel in relationships:
+                query = query.options(selectinload(getattr(self.model, rel)))
+
+        result = await session.execute(query)
+        return list(result.scalars().all())
+
+    @log_database_queries
+    async def get_by_fields(
+        self, session: AsyncSession, *, fields: Dict[str, Any]
+    ) -> Optional[ModelType]:
+        """
+        Get object by some fields.
+        An object return if at least one match is found.
+
+        Args:
+            session: Database session
+            fields: dict of fields {name: value}
+
+        Returns:
+            Object or None if not found
+        """
+        filter_conditions = []
+
+        for field_name, field_value in fields.items():
+            if field_value:
+                filter_conditions.append(getattr(self.model, field_name) == field_value)
+
+        if not filter_conditions:
+            return None
+
+        query = select(self.model).where(or_(*filter_conditions))
+        result = await session.execute(query)
+
+        return result.scalar_one_or_none()
+
+    @log_database_queries
+    async def get_by_fields_many(
+        self,
+        session: AsyncSession,
+        *,
+        fields: Dict[str, Any],
+        skip: int = 0,
+        limit: int = 100,
+        order_by: Any = None,
+        relationships: List[str] = None,
+    ) -> List[ModelType]:
+        """
+        Get many objects by multiple fields values.
+        An object is returned if at least one field matches.
+
+        Args:
+            session: Database session
+            fields: dict of fields {name: value}
+            skip: Skip number of objects
+            limit: Limit number of objects
+            order_by: Order by clause
+            relationships: List of relationship names to load
+
+        Returns:
+            List of objects
+        """
+        filter_conditions = []
+
+        for field_name, field_value in fields.items():
+            if not hasattr(self.model, field_name):
+                raise AttributeError(
+                    f"Model {self.model.__name__} has no field {field_name}"
+                )
+            if field_value:
+                filter_conditions.append(getattr(self.model, field_name) == field_value)
+
+        if not filter_conditions:
+            return []
+
+        if not order_by:
+            order_by = self.model.id
+
+        query = (
+            select(self.model)
+            .where(or_(*filter_conditions))
+            .offset(skip)
+            .limit(limit)
+            .order_by(order_by)
+        )
+
+        if relationships:
+            for rel in relationships:
+                query = query.options(selectinload(getattr(self.model, rel)))
+
+        result = await session.execute(query)
         return list(result.scalars().all())
 
     @log_database_queries
@@ -161,7 +276,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         *,
         update_object_id: int,
         object_in: Union[UpdateSchemaType, Dict[str, Any]],
-    ) -> ModelType:
+    ) -> Optional[ModelType]:
         """
         Update object
 
@@ -173,7 +288,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         Returns:
             Updated object
         """
-        database_object: ModelType = await self.get(session, update_object_id)
+        database_object = await self.get(session, update_object_id)
+
+        if not database_object:
+            return None
 
         if isinstance(object_in, dict):
             update_data = object_in
@@ -276,7 +394,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     @log_database_queries
     async def update_fields(
-        self, session: AsyncSession, *, object_id: Any, fields: Dict[str, Any]
+        self,
+        session: AsyncSession,
+        *,
+        object_id: Any,
+        fields: Dict[str, Any],
+        relationships: Optional[List[str]] = None,
     ) -> Optional[ModelType]:
         """
         Update single field of an object
@@ -290,16 +413,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             Updated object or None if not found
         """
         # Get object
-        object = await self.get(session, object_id)
+        object = await self.get(session, object_id, relationships)
         if not object:
             return None
 
-        # Check field exists
+        # Update fields
         for name, value in fields.items():
-            if value is None:
-                logger.warning(f"Field {name} is None, skip it")
-                continue
 
+            # Check field exists
             if not hasattr(object, name):
                 raise AttributeError(
                     f"Model {self.model.__name__} has no field '{name}'"
@@ -313,14 +434,13 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             setattr(object, name, value)
 
         # Save
-        session.add(object)
         await session.commit()
         await session.refresh(object)
 
         return object
 
     @log_database_queries
-    async def remove(self, session: AsyncSession, *, id: int) -> Optional[ModelType]:
+    async def delete(self, session: AsyncSession, *, id: int) -> Optional[ModelType]:
         """
         Delete object by id
 
@@ -340,29 +460,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             await session.commit()
 
         return obj
-
-    @log_database_queries
-    async def delete(self, session: AsyncSession, *, id: int) -> bool:
-        """
-        Delete object by id
-
-        Args:
-            id: int
-        Returns:
-            bool: True if object was deleted, False otherwise
-        """
-        try:
-            result = await session.execute(
-                select(self.model).where(self.model.id == id)
-            )
-            obj = result.scalar_one_or_none()
-
-            await session.delete(obj)
-            await session.commit()
-            return True
-        except Exception:
-            await session.rollback()
-            return False
 
     @log_database_queries
     async def is_exists(self, session: AsyncSession, *, id: int) -> bool:

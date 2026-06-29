@@ -5,12 +5,12 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 
 from utils.logger import logger, log_database_queries
-from database.crud.base import CRUDBase
 from database.models.message import Message
 from schemas.message import MessageCreate, MessageUpdate
+from repositories.base import BaseRepository
 
 
-class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
+class MessageRepository(BaseRepository[Message, MessageCreate, MessageUpdate]):
     """Class for message CRUD operations"""
 
     async def get_message(
@@ -152,8 +152,8 @@ class CRUDMessage(CRUDBase[Message, MessageCreate, MessageUpdate]):
         Returns:
             Message object or None if message not found
         """
-        deleted_message = await self.remove(session=session, id=message_id)
+        deleted_message = await self.delete(session=session, id=message_id)
         return deleted_message
 
 
-message_crud = CRUDMessage(Message)
+message_repository = MessageRepository(Message)

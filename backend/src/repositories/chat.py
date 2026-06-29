@@ -5,12 +5,12 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import select, desc, func
 
 from utils.logger import logger, log_database_queries
-from database.crud.base import CRUDBase
 from database.models.chat import Chat
 from schemas.chat import ChatCreate, ChatUpdate
+from repositories.base import BaseRepository
 
 
-class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
+class ChatRepository(BaseRepository[Chat, ChatCreate, ChatUpdate]):
     """Class for chat CRUD operations"""
 
     async def get_chat(
@@ -326,8 +326,8 @@ class CRUDChat(CRUDBase[Chat, ChatCreate, ChatUpdate]):
         if not chat:
             return None
 
-        deleted_chat = await self.delete(session=session, object_id=chat_id)
+        deleted_chat = await self.delete(session=session, id=chat_id)
         return deleted_chat
 
 
-chat_crud = CRUDChat(Chat)
+chat_repository = ChatRepository(Chat)

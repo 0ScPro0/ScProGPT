@@ -5,12 +5,12 @@ from sqlalchemy import select, or_
 from datetime import datetime
 
 from utils.logger import logger, log_database_queries
-from database.crud.base import CRUDBase
 from database.models.user import User
 from schemas.user import UserCreate, UserUpdate
+from repositories.base import BaseRepository
 
 
-class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
+class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
     """Class for user CRUD operations"""
 
     async def get_by_email(
@@ -234,7 +234,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         Returns:
             Deleted user object or None if not found
         """
-        deleted_user = await self.remove(session=session, id=user_id)
+        deleted_user = await self.delete(session=session, id=user_id)
         return deleted_user
 
     async def is_active(self, session: AsyncSession, *, user_id: int) -> bool:
@@ -248,8 +248,8 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         Returns:
             bool: True if user is active, False otherwise
         """
-        user: User = await self.get(session=session, id=user_id)
+        user = await self.get(session=session, id=user_id)
         return user.is_active if user else False
 
 
-user_crud = CRUDUser(User)
+user_repository = UserRepository(User)
