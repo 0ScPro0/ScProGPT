@@ -2,9 +2,9 @@ from typing import AsyncGenerator, Dict, List, Optional, Union
 from abc import ABC, abstractmethod
 import re
 
+from core.exceptions import HTTPNotImplementedError
 from utils.logger import log
 from schemas.ai import ProviderResponse, AssistantMessage, UserMessage
-
 
 Message = Union[AssistantMessage, UserMessage]
 
@@ -24,13 +24,13 @@ class BaseProvider(ABC):
     async def generate_text(
         self, messages: list, model: str, **kwargs
     ) -> ProviderResponse:
-        pass
+        raise HTTPNotImplementedError("Method has to be implemented in child provider")
 
     @abstractmethod
     async def generate_stream(
         self, messages: list, model: str, **kwargs
     ) -> AsyncGenerator:
-        pass
+        raise HTTPNotImplementedError("Method has to be implemented in child provider")
 
     async def is_model_supports(self, model: str) -> bool:
         """
