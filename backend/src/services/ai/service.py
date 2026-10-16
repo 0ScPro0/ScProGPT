@@ -308,7 +308,7 @@ class AIService:
 
         return ProviderListResponse(
             providers=sorted(list(providers)),
-            current_provider=current,
+            current_provider=getattr(current, "provider_name", str(current)),
         )
 
     async def get_provider_info(
@@ -334,10 +334,13 @@ class AIService:
             )
 
         current_provider = await self.provider_manager.get_current_provider(chat_id)
+        current_provider_name = getattr(
+            current_provider, "provider_name", str(current_provider)
+        )
 
         return ProviderDetailResponse(
             provider=info,
-            is_current=(target_provider == current_provider),
+            is_current=(target_provider == current_provider_name),
         )
 
     async def get_models(
@@ -358,8 +361,8 @@ class AIService:
             chat_id=chat_id, provider_name=target_provider
         )
 
-        models = provider_instance.get_supported_models()
-        current_model = self.provider_manager.get_current_model(chat_id)
+        models = await provider_instance.get_supported_models()
+        current_model = await self.provider_manager.get_current_model(chat_id)
 
         return ModelListResponse(
             provider=target_provider,

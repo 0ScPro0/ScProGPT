@@ -15,7 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from core.exceptions import AuthError, InvalidTokenTypeError
-from database import database, user_crud, User
+from database import database, User
+from repositories import user_repository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 http_bearer = HTTPBearer()
@@ -189,12 +190,12 @@ async def get_current_user(
         raise AuthError("Invalid token")
 
     # Get user
-    user: User = await user_crud.get(session, user_id)
+    user = await user_repository.get(session=session, id=user_id)
     if not user:
         raise AuthError("User not found")
 
     # Check user is active
-    is_active = await user_crud.is_active(session=session, user_id=user.id)
+    is_active = await user_repository.is_active(session=session, user_id=user.id)
     if user and not is_active:
         raise AuthError("User is not active")
 

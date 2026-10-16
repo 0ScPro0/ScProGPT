@@ -12,7 +12,7 @@ from services.ai.providers import (
     OpenAIProvider,
     OpenRouterProvider,
 )  # TODO more providers
-from database.crud.chat import chat_crud
+from repositories.chat import chat_repository
 from schemas.ai import ProviderInfo, ProviderStatus
 from utils.logger import log
 
@@ -44,7 +44,7 @@ class ProviderManager:
     def __init__(self, session: AsyncSession):
         # Resolve provider name to instance
         self.session = session
-        self.chat_crud = chat_crud
+        self.chat_repository = chat_repository
         self._available_providers: Set[str] = {
             "openai",
             "openrouter",
@@ -79,7 +79,7 @@ class ProviderManager:
             NotFoundError: If provider is not available or not found.
         """
         # Check provider is available
-        provider_name = await chat_crud.get_chat_provider(
+        provider_name = await chat_repository.get_chat_provider(
             session=self.session, chat_id=chat_id
         )
         if not await self.is_provider_available(provider_name):
@@ -104,7 +104,7 @@ class ProviderManager:
         Returns:
             Current provider object.
         """
-        provider_name = await self.chat_crud.get_chat_provider(
+        provider_name = await self.chat_repository.get_chat_provider(
             session=self.session, chat_id=chat_id
         )
         return await self.get_provider(chat_id=chat_id, provider_name=provider_name)
@@ -143,7 +143,7 @@ class ProviderManager:
                     current_model = new_provider.default_model
 
                 # Set new provider
-                await self.chat_crud.update_chat_provider_and_model(
+                await self.chat_repository.update_chat_provider_and_model(
                     session=self.session,
                     chat_id=chat_id,
                     provider=new_provider.provider_name,
@@ -203,11 +203,12 @@ class ProviderManager:
             return None
 
         model = await self.get_current_model(chat_id=chat_id)
+        supported_models = await provider.get_supported_models()
 
         return ProviderInfo(
             name=provider.provider_name,
             prefix=provider.prefix,
-            supported_models=provider.get_supported_models(),
+            supported_models=supported_models,
             current_model=model,
         )
 
@@ -264,7 +265,7 @@ class ProviderManager:
         try:
             if await self.is_model_available(chat_id=chat_id, model_name=model_name):
                 # Update chat model in database
-                await self.chat_crud.update_chat_model(
+                await self.chat_repository.update_chat_model(
                     session=self.session, chat_id=chat_id, model=model_name
                 )
                 return True
@@ -282,7 +283,7 @@ class ProviderManager:
         Returns:
             Current model name, or None if not set.
         """
-        model = await self.chat_crud.get_chat_model(
+        model = await self.chat_repository.get_chat_model(
             session=self.session, chat_id=chat_id
         )
         return model

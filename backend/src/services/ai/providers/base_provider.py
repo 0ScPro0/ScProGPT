@@ -66,7 +66,7 @@ class BaseProvider(ABC):
         Returns:
             True or False if model not available
         """
-        if self.validate_model(model):
+        if await self.validate_model(model):
             self.supported_models.append(model)
             return True
         return False
@@ -100,7 +100,7 @@ class BaseProvider(ABC):
         Returns:
             Prefix name or None if prefix not available
         """
-        if self.validate_prefix(prefix):
+        if await self.validate_prefix(prefix):
             return prefix
         return None
 

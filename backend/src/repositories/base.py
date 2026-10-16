@@ -261,7 +261,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if isinstance(object_in, dict):
             create_data = object_in
         else:
-            create_data = object_in.model_dump(exclude_unset=True)
+            create_data = object_in.model_dump()
 
         database_object = self.model(**create_data)
         session.add(database_object)

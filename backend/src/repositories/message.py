@@ -1,4 +1,4 @@
-# backend/src/database/crud/message.py
+# backend/src/repositories/message.py
 from typing import List, Optional, Dict, Any, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload

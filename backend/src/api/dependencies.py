@@ -2,7 +2,8 @@ from typing import AsyncGenerator
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database import database, User, chat_crud, message_crud, user_crud
+from database import database, User
+from repositories import user_repository, message_repository, chat_repository
 from schemas.user import UserSchema, UserResponse
 from services.auth import AuthService
 from services.chat import ChatService
@@ -25,28 +26,28 @@ async def get_auth_service(
     session: AsyncSession = Depends(get_db_session),
 ) -> AuthService:
     """Get auth service"""
-    return AuthService(session, user_crud)
+    return AuthService(session, user_repository)
 
 
 async def get_user_service(
     session: AsyncSession = Depends(get_db_session),
 ) -> UserService:
     """Get user service"""
-    return UserService(session, user_crud)
+    return UserService(session, user_repository)
 
 
 async def get_chat_service(
     session: AsyncSession = Depends(get_db_session),
 ) -> ChatService:
     """Get chat service"""
-    return ChatService(session, chat_crud)
+    return ChatService(session, chat_repository)
 
 
 async def get_message_service(
     session: AsyncSession = Depends(get_db_session),
 ) -> MessageService:
     """Get message service"""
-    return MessageService(session, message_crud)
+    return MessageService(session, message_repository)
 
 
 async def get_ai_service(
