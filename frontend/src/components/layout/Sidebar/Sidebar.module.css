@@ -35,3 +35,16 @@
     border-bottom: var(--border);
     height: 60px;
 }
+
+.chat_list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.empty_chats {
+    color: #848484;
+    font-size: 14px;
+    text-align: center;
+    padding: 20px 10px;
+}

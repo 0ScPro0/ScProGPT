@@ -18,6 +18,21 @@
     margin-bottom: 100px;
 }
 
+.loading {
+    color: #848484;
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+}
+
+.empty_state {
+    color: #848484;
+    text-align: center;
+    padding: 40px 20px;
+    font-size: 16px;
+    opacity: 0.8;
+}
+
 .input_field_wrapper {
     position: fixed;
     margin: 0 auto;
@@ -27,6 +42,7 @@
     bottom: 0;
     left: 0;
     right: 0;
+    background-color: var(--bg-color);
 
     transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

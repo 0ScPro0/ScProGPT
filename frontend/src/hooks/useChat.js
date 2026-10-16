@@ -90,6 +90,7 @@ export const useChat = () => {
     // Returns
     return {
         messages,
+        setMessages,
         inputText,
         setInputText,
         sendMessage,

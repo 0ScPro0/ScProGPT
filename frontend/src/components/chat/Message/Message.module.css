@@ -1,6 +1,6 @@
 .message {
     color: var(--text-color);
-    font-size: 20px;
+    font-size: 18px;
     white-space: pre-wrap;
     word-break: break-word; 
     overflow-wrap: anywhere; 

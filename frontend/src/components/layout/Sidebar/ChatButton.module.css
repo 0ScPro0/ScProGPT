@@ -1,0 +1,39 @@
+.chat_button {
+    display: flex;
+    align-items: center;
+    width: calc(100% - 46px);
+    margin: 10px 20px;
+    padding: 12px 14px;
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: Roboto, sans-serif;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat_button:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-1px);
+}
+
+.chat_button:active {
+    background-color: var(--active-color);
+    transform: translateY(0) scale(0.98);
+}
+
+.chat_button_active,
+.chat_button_active:hover {
+    background-color: var(--active-color);
+    font-weight: 600;
+}

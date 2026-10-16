@@ -1,35 +1,82 @@
+import { useEffect, useRef, useState } from "react"
 import styles from "./Chat.module.css"
 import { InputField } from "../InputField"
 import { MessageFromUser } from "../Message/MessageFromUser";
 import { MessageFromAssistant } from "../Message/MessageFromAssistant";
 import { useChat } from "../../../hooks/useChat"
-import { useEffect, useRef } from "react";
+import { messageService } from "../../../services/api/message"
 
-export function Chat({ collapsed = false }){
+export function Chat({ collapsed = false, chatId = null }){
     // useChat hook
     const {
         messages,
+        setMessages,
         inputText,
         setInputText,
         sendMessage,
         handleKeyDown,
     } = useChat()
-    
+
+    const [loading, setLoading] = useState(false)
+
     // Ref for scroll
     const messagesEndRef = useRef(null);
-    
-    // Auto scroll to bottom on new messages
+
+    // Load chat history when a chat is selected
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
+        let cancelled = false
+
+        if (chatId == null) {
+            setMessages([])
+            setLoading(false)
+            return () => { cancelled = true }
+        }
+
+        setLoading(true)
+        messageService
+            .getChatMessages(chatId)
+            .then((history) => {
+                if (cancelled) return
+                setMessages(
+                    (history || []).map((m) => ({
+                        id: m.id,
+                        role: m.role,
+                        text: m.content,
+                    }))
+                )
+            })
+            .catch(() => {
+                if (!cancelled) setMessages([])
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false)
+            })
+
+        return () => { cancelled = true }
+    }, [chatId])
+
+    // Scroll chat to the bottom immediately when messages/history change
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({
+            behavior: "auto",
+            block: "start",
         });
-    }, [messages]);
+    }, [messages, chatId]);
 
     return (
         <div className={styles.chat}>
             {/* Message wrapper */}
             <div className={styles.messages_wrapper}>
+                {loading && (
+                    <div className={styles.loading}>Loading history...</div>
+                )}
+
+                {!loading && messages.length === 0 && (
+                    <div className={styles.empty_state}>
+                        Select a chat from the sidebar or start a new conversation
+                    </div>
+                )}
+
                 {messages.map((message) => {
                     if (message.role === "assistant") {
                         if (message.isTypingIndicator) {
@@ -43,7 +90,7 @@ export function Chat({ collapsed = false }){
                                 </MessageFromAssistant>
                             );
                         }
-                        
+
                         // Если сообщение еще печатается
                         if (message.isTyping) {
                             return (
@@ -53,15 +100,15 @@ export function Chat({ collapsed = false }){
                                 </MessageFromAssistant>
                             );
                         }
-                        
+
                         // Готовое сообщение
                         return (
                             <MessageFromAssistant key={message.id}>
                                 {message.text}
                             </MessageFromAssistant>
                         );
-                    } 
-                    
+                    }
+
                     // Сообщение пользователя
                     return (
                         <MessageFromUser key={message.id}>
@@ -74,7 +121,7 @@ export function Chat({ collapsed = false }){
 
             {/* Input Field wrapper */}
             <div className={`${styles.input_field_wrapper} ${collapsed ? styles.input_field_wrapper_collapsed : ""}`}>
-                <InputField 
+                <InputField
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onSendClick={sendMessage}
