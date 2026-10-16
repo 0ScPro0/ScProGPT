@@ -1,0 +1,39 @@
+.sidebar {
+    /* Floating plaque: stays on top of the content, left side.
+       Width matches the expanded sidebar so the top bar (and its
+       bottom border) looks exactly the same. */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 100vh;
+    z-index: 1000;
+    background-color: var(--bg-color);
+
+    animation: slideFromLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideFromLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Same top bar as the full sidebar: full logo + button in one row,
+   only the body of the panel is gone. */
+.top {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 5px;
+    margin-left: 20px;
+    margin-right: 20px;
+    height: 60px;
+    /* Fixed-length bottom border of the top bar */
+    border-bottom: var(--border);
+}

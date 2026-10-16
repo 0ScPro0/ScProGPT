@@ -5,7 +5,7 @@ import { MessageFromAssistant } from "../Message/MessageFromAssistant";
 import { useChat } from "../../../hooks/useChat"
 import { useEffect, useRef } from "react";
 
-export function Chat(){
+export function Chat({ collapsed = false }){
     // useChat hook
     const {
         messages,
@@ -73,7 +73,7 @@ export function Chat(){
             </div>
 
             {/* Input Field wrapper */}
-            <div className={styles.input_field_wrapper}>
+            <div className={`${styles.input_field_wrapper} ${collapsed ? styles.input_field_wrapper_collapsed : ""}`}>
                 <InputField 
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}

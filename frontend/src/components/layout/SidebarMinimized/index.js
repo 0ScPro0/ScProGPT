@@ -1,0 +1,1 @@
+export { SidebarMinimized } from "./SidebarMinimized";

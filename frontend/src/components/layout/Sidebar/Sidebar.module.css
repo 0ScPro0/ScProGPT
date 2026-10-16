@@ -4,12 +4,25 @@
     flex-direction: column;
     z-index: 1000;
     border-right: var(--border);
-    width: 300px;
+    width: 100%; /* fits the grid column set by the parent layout */
     height: 100vh;
     position: sticky;
-    top: 0; 
+    top: 0;
     background-color: var(--bg-color);
     box-shadow: var(--glow-box);
+
+    animation: slideFromLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideFromLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 .top {
