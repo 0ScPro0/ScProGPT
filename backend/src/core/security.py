@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 
-from fastapi import Depends
+from fastapi import Depends, Request
 import jwt
 from jwt import (
     ExpiredSignatureError,
@@ -19,7 +19,9 @@ from database import database, User
 from repositories import user_repository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-http_bearer = HTTPBearer()
+http_bearer = HTTPBearer(auto_error=False)
+ACCESS_TOKEN_COOKIE = "access_token"
+REFRESH_TOKEN_COOKIE = "refresh_token"
 
 
 def verify_password(password: str, hashed_password: str) -> bool:
@@ -163,21 +165,31 @@ def decode_token(token: str) -> Optional[dict]:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(http_bearer),
     session: AsyncSession = Depends(database.get_session),
 ) -> Optional[User]:
     """
-    Get user from JWT token
+    Get user from JWT token (Authorization header or httpOnly cookie).
 
     Args:
-        credentials: HTTPAuthorizationCredentials
+        request: Request (used to read auth cookie)
+        credentials: HTTPAuthorizationCredentials (optional)
         session: Database session
 
     Returns:
         User object or None if invalid/expired
     """
+    # Prefer Authorization header, fall back to httpOnly cookie
+    token = (
+        credentials.credentials
+        if credentials
+        else request.cookies.get(ACCESS_TOKEN_COOKIE)
+    )
+    if not token:
+        raise AuthError("Not authenticated")
+
     # Get payload
-    token = credentials.credentials
     payload = decode_token(token)
     if not payload:
         raise AuthError("Invalid token")

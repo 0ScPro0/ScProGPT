@@ -537,3 +537,56 @@ class TestMessagesEndpoints:
         )
         assert resp.status_code == 200
         assert "boom" in resp.text
+
+
+# ============================================================
+# httpOnly cookie flow
+# ============================================================
+
+
+class TestAuthCookies:
+    async def test_signup_sets_http_only_cookies(self, client):
+        await signup(client)
+        assert "access_token" in client.cookies
+        assert "refresh_token" in client.cookies
+
+    async def test_signin_sets_http_only_cookies(self, client):
+        await signup(client)
+        client.cookies.clear()
+        resp = await client.post(
+            "/api/v1/auth/signin",
+            json={"email": SIGNUP_DATA["email"], "password": SIGNUP_DATA["password"]},
+        )
+        assert resp.status_code == 200
+        assert "access_token" in client.cookies
+        assert "refresh_token" in client.cookies
+
+    async def test_me_with_cookie_without_header(self, client):
+        body = await signup(client)
+        # No Authorization header — browser would send httpOnly cookie
+        resp = await client.get("/api/v1/users/me")
+        assert resp.status_code == 200
+        assert resp.json()["username"] == SIGNUP_DATA["username"]
+
+    async def test_refresh_with_cookie(self, client):
+        body = await signup(client)
+        resp = await client.post("/api/v1/auth/refresh")
+        assert resp.status_code == 200
+        assert resp.json()["access_token"]
+
+    async def test_refresh_requires_token(self, client):
+        resp = await client.post("/api/v1/auth/refresh")
+        assert resp.status_code == 403
+
+    async def test_logout_with_cookie(self, client):
+        body = await signup(client)
+        resp = await client.post("/api/v1/auth/logout")
+        assert resp.status_code == 200
+        assert not client.cookies.get("access_token")
+        assert not client.cookies.get("refresh_token")
+
+    async def test_logout_invalidates_session(self, client):
+        body = await signup(client)
+        await client.post("/api/v1/auth/logout")
+        resp = await client.get("/api/v1/users/me")
+        assert resp.status_code in (401, 403)

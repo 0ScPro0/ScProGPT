@@ -24,6 +24,12 @@ def make_credentials(token: str):
     return cred
 
 
+def make_request(cookies=None):
+    req = MagicMock()
+    req.cookies = cookies or {}
+    return req
+
+
 class TestPassword:
     def test_hash_and_verify(self):
         hashed = hash_password("password123")
@@ -92,28 +98,51 @@ class TestGetCurrentUser:
     async def test_valid_user(self, test_session, user):
         token = create_access_token({"sub": str(user.id)})
         result = await get_current_user(
-            credentials=make_credentials(token), session=test_session
+            request=make_request(),
+            credentials=make_credentials(token),
+            session=test_session,
         )
         assert result.id == user.id
+
+    async def test_valid_user_from_cookie(self, test_session, user):
+        token = create_access_token({"sub": str(user.id)})
+        result = await get_current_user(
+            request=make_request(cookies={"access_token": token}),
+            credentials=None,
+            session=test_session,
+        )
+        assert result.id == user.id
+
+    async def test_no_token_raises(self, test_session):
+        with pytest.raises(AuthError):
+            await get_current_user(
+                request=make_request(), credentials=None, session=test_session
+            )
 
     async def test_invalid_token(self, test_session):
         with pytest.raises(AuthError):
             await get_current_user(
-                credentials=make_credentials("bad.token"), session=test_session
+                request=make_request(),
+                credentials=make_credentials("bad.token"),
+                session=test_session,
             )
 
     async def test_refresh_token_rejected(self, test_session, user):
         token = create_refresh_token({"sub": str(user.id)})
         with pytest.raises(AuthError):
             await get_current_user(
-                credentials=make_credentials(token), session=test_session
+                request=make_request(),
+                credentials=make_credentials(token),
+                session=test_session,
             )
 
     async def test_user_not_found(self, test_session):
         token = create_access_token({"sub": "999999"})
         with pytest.raises(AuthError):
             await get_current_user(
-                credentials=make_credentials(token), session=test_session
+                request=make_request(),
+                credentials=make_credentials(token),
+                session=test_session,
             )
 
     async def test_inactive_user(self, test_session):
@@ -128,5 +157,7 @@ class TestGetCurrentUser:
         token = create_access_token({"sub": str(inactive.id)})
         with pytest.raises(AuthError):
             await get_current_user(
-                credentials=make_credentials(token), session=test_session
+                request=make_request(),
+                credentials=make_credentials(token),
+                session=test_session,
             )

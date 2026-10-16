@@ -41,6 +41,11 @@ class SecurityConfig(BaseModel):
         description="Environment: development, staging, production",
     )
 
+    # Auth cookie settings
+    cookie_httponly: bool = Field(default=True)
+    cookie_secure: bool = Field(default=False)
+    cookie_samesite: str = Field(default="lax")
+
 
 class AIConfig(BaseModel):
     api_key: str = Field(default="")
