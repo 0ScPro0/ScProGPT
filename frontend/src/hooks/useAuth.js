@@ -4,23 +4,18 @@ import { useAuthStore } from '../stores/authStore';
 
 export function useAuthInit() {
     const navigate = useNavigate();
-    const { refreshToken, isAuthenticated, refreshAccessToken } = useAuthStore();
+    const loadCurrentUser = useAuthStore((state) => state.loadCurrentUser);
 
     useEffect(() => {
         const initAuth = async () => {
-            if (refreshToken) {
-                // Try to refresh token
-                const success = await refreshAccessToken();
-                if (!success) {
-                    // Refresh token is exprited, send user to the signin
-                    navigate('/auth');
-                }
-            } else {
-                // User has no token
+            const ok = await loadCurrentUser();
+            if (!ok) {
+                // No valid session (cookies missing/expired) → signin page
                 navigate('/auth');
             }
         };
 
         initAuth();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 }

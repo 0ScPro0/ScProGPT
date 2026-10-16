@@ -1,32 +1,39 @@
 import { useAuthStore } from '../../stores/authStore';
 
-// Add accessToken to each request
+// Tokens are stored in httpOnly cookies and are attached to every
+// request automatically by the browser (withCredentials: true),
+// so there is no need to add an Authorization header manually.
 export function setupInterceptors(apiClient) {
-    apiClient.interceptors.request.use((config) => {
-        const { accessToken } = useAuthStore.getState();
-        if (accessToken) {
-            config.headers.Authorization = `Bearer ${accessToken}`;
-        }
-        return config;
-    });
+    apiClient.interceptors.request.use((config) => config);
 
-    // If 401, we try to refresh the token.
+    // On 401, try to refresh the access token using the httpOnly
+    // refresh cookie; if it fails, log the user out.
     apiClient.interceptors.response.use(
         (response) => response,
         async (error) => {
             const originalRequest = error.config;
-            if (error.response?.status === 401 && !originalRequest._retry) {
+            const isRefreshCall =
+                originalRequest?.url?.includes('/auth/refresh');
+            const status = error.response?.status;
+
+            if (status === 401 && !originalRequest._retry && !isRefreshCall) {
                 originalRequest._retry = true;
-                const { refreshAccessToken } = useAuthStore.getState();
-                const newAccessToken = await refreshAccessToken();
-                if (newAccessToken) {
-                    originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                try {
+                    await apiClient.post('/auth/refresh');
                     return apiClient(originalRequest);
+                } catch (refreshError) {
+                    // Refresh failed — fall through to logout below.
                 }
             }
-            const { clearTokens } = useAuthStore.getState();
-            clearTokens();
-            window.location.href = '/auth';
+
+            if (status === 401) {
+                const { logout } = useAuthStore.getState();
+                logout();
+                if (window.location.pathname !== '/auth') {
+                    window.location.href = '/auth';
+                }
+            }
+
             return Promise.reject(error);
         }
     );

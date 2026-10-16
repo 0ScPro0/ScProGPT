@@ -1,41 +1,45 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { authService } from '../services/api/auth';
 
-export const useAuthStore = create(
-    persist(
-        (set, get) => ({
-            accessToken: null,
-            refreshToken: null,
-            isAuthenticated: false,
+// JWT tokens are stored in httpOnly cookies by the backend, so this
+// store keeps only the client-side auth state (no tokens exposed to JS).
+export const useAuthStore = create((set) => ({
+    isAuthenticated: false,
+    user: null,
 
-            setTokens: (access, refresh) => {
-                set({ accessToken: access, refreshToken: refresh, isAuthenticated: true });
-            },
+    setAuth: (user) => set({ isAuthenticated: true, user }),
 
-            clearTokens: () => {
-                set({ accessToken: null, refreshToken: null, isAuthenticated: false });
-            },
+    clearAuth: () => set({ isAuthenticated: false, user: null }),
 
-            refreshAccessToken: async () => {
-                const { refreshToken } = get();
-                if (!refreshToken) return null;
-
-                try {
-                    const data = await authService.refresh(refreshToken);
-                    set({ accessToken: data.access_token });
-                    return data.access_token;
-                } catch (error) {
-                    set({ isAuthenticated: false, accessToken: null, refreshToken: null });
-                    return null;
-                }
-            },
-            
-            getAccessToken: () => get().accessToken,
-        }),
-        {
-            name: 'auth-storage',
-            partialize: (state) => ({ refreshToken: state.refreshToken })
+    // Restore session on app start: call /users/me (browser sends cookies)
+    loadCurrentUser: async () => {
+        try {
+            const user = await authService.me();
+            set({ isAuthenticated: true, user });
+            return true;
+        } catch (error) {
+            set({ isAuthenticated: false, user: null });
+            return false;
         }
-    )
-);
+    },
+
+    // Refresh the access token via httpOnly refresh cookie
+    refreshSession: async () => {
+        try {
+            await authService.refresh();
+            return true;
+        } catch (error) {
+            set({ isAuthenticated: false, user: null });
+            return false;
+        }
+    },
+
+    logout: async () => {
+        try {
+            await authService.logout();
+        } catch (error) {
+            // ignore network errors — clear local state anyway
+        }
+        set({ isAuthenticated: false, user: null });
+    },
+}));

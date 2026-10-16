@@ -15,7 +15,7 @@ export const authService = {
             .toLowerCase()                    // to avoid confusion with the register
             .replace(/[^a-z0-9_]/g, '_');     // replace everything except letters, numbers and _ with _
         
-        // Send request
+        // Send request (httpOnly cookies are set by the server)
         const response = await apiClient.post('/auth/signup', {
             email,
             username: sanitizedUsername,
@@ -30,9 +30,16 @@ export const authService = {
         return response.data; 
     },
 
-    async refresh(refreshToken) {
-        const response = await apiClient.post('/auth/refresh', { refresh_token: refreshToken });
-        return response.data; 
+    // Refresh access token using the httpOnly refresh cookie
+    async refresh() {
+        const response = await apiClient.post('/auth/refresh');
+        return response.data;
+    },
+
+    // Get the current authenticated user
+    async me() {
+        const response = await apiClient.get('/users/me');
+        return response.data;
     },
 
     async logout() {
