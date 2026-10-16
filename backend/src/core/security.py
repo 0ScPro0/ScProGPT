@@ -194,9 +194,7 @@ async def get_current_user(
     if not user:
         raise AuthError("User not found")
 
-    # Check user is active
-    is_active = await user_repository.is_active(session=session, user_id=user.id)
-    if user and not is_active:
-        raise AuthError("User is not active")
+    if not user.is_active:
+        raise AuthError("Forbidden")
 
     return user
