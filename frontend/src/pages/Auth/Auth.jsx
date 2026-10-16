@@ -1,17 +1,81 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import styles from "./Auth.module.css"
 import { TopbarAuth } from "../../components/layout/Header/TopbarAuth"
+import { authService } from "../../services/api/auth"
+import { useAuthStore } from "../../stores/authStore"
 
-export function Auth() {
-    const [activeTab, setActiveTab] = useState("signin")
+
+function extractErrorMessage(error) {
+    const detail = error?.response?.data?.detail
+    if (typeof detail === "string") return detail
+    if (Array.isArray(detail)) return detail[0]?.msg || "Ошибка запроса"
+    return "Не удалось выполнить запрос. Попробуйте ещё раз"
+}
+
+export function Auth({ mode = "signin" }) {
+    const navigate = useNavigate()
+    const setAuth = useAuthStore((state) => state.setAuth)
+
+    const [activeTab, setActiveTab] = useState(mode)
     const [showPassword, setShowPassword] = useState(false)
     const [showRepeatPassword, setShowRepeatPassword] = useState(false)
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [repeatPassword, setRepeatPassword] = useState("")
     const [rememberMe, setRememberMe] = useState(false)
+    const [error, setError] = useState("")
+    const [loading, setLoading] = useState(false)
 
     const isSignIn = activeTab === "signin"
+
+    // Open the required tab when navigating between /signin and /signup
+    useEffect(() => {
+        setActiveTab(mode)
+        setError("")
+    }, [mode])
+
+    const switchTab = (tab) => {
+        setActiveTab(tab)
+        setError("")
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setError("")
+
+        // Client-side validation
+        if (!email || !password) {
+            setError("Введите email и пароль")
+            return
+        }
+        if (!isSignIn) {
+            if (password.length < 8) {
+                setError("Пароль должен содержать минимум 8 символов")
+                return
+            }
+            if (password !== repeatPassword) {
+                setError("Пароли не совпадают")
+                return
+            }
+        }
+
+        setLoading(true)
+        try {
+            // Backend sets httpOnly cookies on success; we keep only the
+            // client-side user state and redirect to the home page.
+            const data = isSignIn
+                ? await authService.signin(email, password)
+                : await authService.signup(email, password)
+
+            setAuth(data.user ?? null)
+            navigate("/")
+        } catch (err) {
+            setError(extractErrorMessage(err))
+        } finally {
+            setLoading(false)
+        }
+    }
 
     return (
         <div className={styles.auth}>
@@ -24,85 +88,62 @@ export function Auth() {
                     <div className={styles.tabs}>
                         <div
                             className={`${styles.tab} ${isSignIn ? styles.tab_active : ""}`}
-                            onClick={() => setActiveTab("signin")}
+                            onClick={() => switchTab("signin")}
                         >
                             Sign In
                         </div>
                         <div className={styles.tab_divider}></div>
                         <div
                             className={`${styles.tab} ${!isSignIn ? styles.tab_active : ""}`}
-                            onClick={() => setActiveTab("signup")}
+                            onClick={() => switchTab("signup")}
                         >
                             Sign Up
                         </div>
                     </div>
 
-                    {/* Email */}
-                    <div className={styles.form_group}>
-                        <label className={styles.form_label}>Email</label>
-                        <input
-                            type="email"
-                            className={styles.form_input}
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="your@email.com"
-                        />
-                    </div>
+                    <form onSubmit={handleSubmit} noValidate>
+                        {/* Error */}
+                        {error && (
+                            <div className={styles.form_error} role="alert">
+                                {error}
+                            </div>
+                        )}
 
-                    {/* Password */}
-                    <div className={styles.form_group}>
-                        <label className={styles.form_label}>Password</label>
-                        <div className={styles.password_wrapper}>
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                className={styles.form_input}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                            />
-                            <button
-                                type="button"
-                                className={styles.password_toggle}
-                                onClick={() => setShowPassword(!showPassword)}
-                            >
-                                <svg className={styles.eye_icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    {showPassword ? (
-                                        <>
-                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                                            <line x1="1" y1="1" x2="23" y2="23" />
-                                            <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
-                                        </>
-                                    ) : (
-                                        <>
-                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                            <circle cx="12" cy="12" r="3" />
-                                        </>
-                                    )}
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Repeat Password (only for Sign Up) */}
-                    {!isSignIn && (
+                        {/* Email */}
                         <div className={styles.form_group}>
-                            <label className={styles.form_label}>Repeat password</label>
+                            <label className={styles.form_label} htmlFor="auth-email">Email</label>
+                            <input
+                                id="auth-email"
+                                type="email"
+                                className={styles.form_input}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="your@email.com"
+                                autoComplete="email"
+                            />
+                        </div>
+
+                        {/* Password */}
+                        <div className={styles.form_group}>
+                            <label className={styles.form_label} htmlFor="auth-password">Password</label>
                             <div className={styles.password_wrapper}>
                                 <input
-                                    type={showRepeatPassword ? "text" : "password"}
+                                    id="auth-password"
+                                    type={showPassword ? "text" : "password"}
                                     className={styles.form_input}
-                                    value={repeatPassword}
-                                    onChange={(e) => setRepeatPassword(e.target.value)}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
+                                    autoComplete={isSignIn ? "current-password" : "new-password"}
                                 />
                                 <button
                                     type="button"
                                     className={styles.password_toggle}
-                                    onClick={() => setShowRepeatPassword(!showRepeatPassword)}
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    aria-label="Toggle password visibility"
                                 >
                                     <svg className={styles.eye_icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        {showRepeatPassword ? (
+                                        {showPassword ? (
                                             <>
                                                 <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
                                                 <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
@@ -119,29 +160,71 @@ export function Auth() {
                                 </button>
                             </div>
                         </div>
-                    )}
 
-                    {/* Remember Me (only for Sign In) */}
-                    {isSignIn && (
-                        <div className={styles.remember_me}>
-                            <input
-                                type="checkbox"
-                                id="remember"
-                                checked={rememberMe}
-                                onChange={(e) => setRememberMe(e.target.checked)}
-                            />
-                            <label htmlFor="remember">Remember me</label>
-                        </div>
-                    )}
+                        {/* Repeat Password (only for Sign Up) */}
+                        {!isSignIn && (
+                            <div className={styles.form_group}>
+                                <label className={styles.form_label} htmlFor="auth-repeat">Repeat password</label>
+                                <div className={styles.password_wrapper}>
+                                    <input
+                                        id="auth-repeat"
+                                        type={showRepeatPassword ? "text" : "password"}
+                                        className={styles.form_input}
+                                        value={repeatPassword}
+                                        onChange={(e) => setRepeatPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        autoComplete="new-password"
+                                    />
+                                    <button
+                                        type="button"
+                                        className={styles.password_toggle}
+                                        onClick={() => setShowRepeatPassword(!showRepeatPassword)}
+                                        aria-label="Toggle repeat password visibility"
+                                    >
+                                        <svg className={styles.eye_icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            {showRepeatPassword ? (
+                                                <>
+                                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                                    <line x1="1" y1="1" x2="23" y2="23" />
+                                                    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </>
+                                            )}
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
-                    {/* Submit Button */}
-                    <button
-                        type="button"
-                        className={styles.btn_signin}
-                        onClick={() => console.log(`${isSignIn ? "Sign In" : "Sign Up"} clicked`)}
-                    >
-                        {isSignIn ? "Sign In" : "Sign Up"}
-                    </button>
+                        {/* Remember Me (only for Sign In) */}
+                        {isSignIn && (
+                            <div className={styles.remember_me}>
+                                <input
+                                    type="checkbox"
+                                    id="remember"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                />
+                                <label htmlFor="remember">Remember me</label>
+                            </div>
+                        )}
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            className={styles.btn_signin}
+                            disabled={loading}
+                        >
+                            {loading
+                                ? "Loading..."
+                                : (isSignIn ? "Sign In" : "Sign Up")}
+                        </button>
+                    </form>
 
                     {/* Divider */}
                     <div className={styles.divider}>

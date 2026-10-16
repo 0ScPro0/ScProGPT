@@ -1,21 +1,6 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
+// Session bootstrapping is handled by <AuthLoader /> on app start.
+// This hook is kept for compatibility and should not be used anymore.
 
 export function useAuthInit() {
-    const navigate = useNavigate();
-    const loadCurrentUser = useAuthStore((state) => state.loadCurrentUser);
-
-    useEffect(() => {
-        const initAuth = async () => {
-            const ok = await loadCurrentUser();
-            if (!ok) {
-                // No valid session (cookies missing/expired) → signin page
-                navigate('/auth');
-            }
-        };
-
-        initAuth();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    return null;
 }

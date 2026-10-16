@@ -1,25 +1,33 @@
 import { Home } from "./pages/Home";
-import { Auth } from "./pages/Auth"
+import { Auth } from "./pages/Auth";
+import { Me } from "./pages/Me";
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useThemeInit } from './hooks/useTheme';
-import { useAuthInit } from "./hooks/useAuth";
-
-function AppContent() {
-    useAuthInit(); 
-    return (
-        <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/auth" element={<Auth />} />
-        </Routes>
-    );
-}
+import { AuthLoader, ProtectedRoute } from "./components/auth";
 
 function App() {
     useThemeInit();
     return (
         <>
             <BrowserRouter>
-                <AppContent/>
+                <AuthLoader>
+                    <Routes>
+                        <Route path="/" element={
+                            <ProtectedRoute>
+                                <Home />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route
+                            path="/me"
+                            element={
+                                <ProtectedRoute>
+                                    <Me />
+                                </ProtectedRoute>
+                            }
+                        />
+                    </Routes>
+                </AuthLoader>
             </BrowserRouter>
         </>
     );
