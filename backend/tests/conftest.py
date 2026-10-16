@@ -8,7 +8,7 @@ between tests (DB session, test data, mocks).
 
 import pytest
 import pytest_asyncio
-from typing import AsyncGenerator
+from typing import AsyncGenerator, List
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -17,14 +17,24 @@ from database.models.base import Base  # type: ignore
 from database.models.user import User  # type: ignore
 from database.models.chat import Chat  # type: ignore
 from database.models.message import Message  # type: ignore
-from database.crud.user import CRUDUser, user_crud  # type: ignore
-from database.crud.chat import CRUDChat, chat_crud  # type: ignore
-from database.crud.message import CRUDMessage, message_crud  # type: ignore
+from repositories import *  # type: ignore
+from repositories import (  # type: ignore
+    user_repository,
+    chat_repository,
+    message_repository,
+    UserRepository,
+    ChatRepository,
+    MessageRepository,
+)
 from services.auth import AuthService  # type: ignore
+from services.user import UserService  # type: ignore
+from services.chat import ChatService  # type: ignore
+from services.message import MessageService  # type: ignore
 from core.config import settings  # type: ignore
 from core.security import hash_password, create_access_token, create_refresh_token  # type: ignore
 from schemas.auth import SignUpRequest, SignInRequest  # type: ignore
-
+from schemas.chat import ChatCreate  # type: ignore
+from schemas.message import MessageCreate  # type: ignore
 
 # ============================================================
 # TEST DB (SQLite in-memory)
@@ -90,20 +100,8 @@ async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 
 
 # ============================================================
-# FIXTURES: CRUD objects
+# FIXTURES: Repositories
 # ============================================================
-
-
-@pytest.fixture
-def user_crud_instance():
-    """CRUDUser instance for use in services."""
-    return CRUDUser(User)
-
-
-@pytest.fixture
-def chat_crud_instance():
-    """CRUDChat instance for use in services."""
-    return CRUDChat(Chat)
 
 
 # ============================================================
@@ -111,73 +109,9 @@ def chat_crud_instance():
 # ============================================================
 
 
-@pytest.fixture
-def unique_email():
-    """
-    Generate a unique email for each test.
-    Uses pytest to generate unique values.
-    """
-    import uuid
-
-    return f"test_{uuid.uuid4().hex[:8]}@example.com"
-
-
-@pytest.fixture
-def user_data_factory():
-    """
-    Factory for creating user data.
-    Each call generates UNIQUE email and username.
-    """
-    import uuid
-
-    def _make_user_data(**overrides):
-        unique_id = uuid.uuid4().hex[:8]
-        data = {
-            "username": f"testuser_{unique_id}",
-            "email": f"test_{unique_id}@example.com",
-            "password": "TestPassword123!",
-        }
-        data.update(overrides)
-        return data
-
-    return _make_user_data
-
-
-@pytest.fixture
-def signup_request_factory(user_data_factory):
-    """SignUpRequest factory for auth tests."""
-
-    def _make_signup_request(**overrides):
-        data = user_data_factory(**overrides)
-        return SignUpRequest(**data)
-
-    return _make_signup_request
-
-
-@pytest.fixture
-def signin_request_factory(user_data_factory):
-    """SignInRequest factory for auth tests."""
-
-    def _make_signin_request(**overrides):
-        email = overrides.get("email", user_data_factory()["email"])
-        password = overrides.get("password", user_data_factory()["password"])
-        return SignInRequest(email=email, password=password)
-
-    return _make_signin_request
-
-
 # ============================================================
 # FIXTURES: Services
 # ============================================================
-
-
-@pytest_asyncio.fixture
-async def auth_service(test_session, user_crud_instance):
-    """
-    AuthService instance with test DB session.
-    Used in auth integration tests.
-    """
-    return AuthService(session=test_session, user_crud=user_crud_instance)
 
 
 # ============================================================
@@ -185,72 +119,124 @@ async def auth_service(test_session, user_crud_instance):
 # ============================================================
 
 
-@pytest_asyncio.fixture
-async def test_user_in_db(test_session, user_data_factory):
-    """
-    Create a user in test DB and return it.
-    Password is hashed.
-    """
-    data = user_data_factory()
-    hashed_pw = hash_password(data["password"])
+# ============================================================
+# FIXTURES: Test users, chats, messages
+# ============================================================
 
-    user = User(
-        username=data["username"],
-        email=data["email"],
-        password_hash=hashed_pw,
-        is_active=True,
-        is_superuser=False,
-        balance=0.0,
+
+async def create_user_in_db(
+    session: AsyncSession,
+    *,
+    username: str = "testuser",
+    email: str = "test@example.com",
+    password: str = "password123",
+    is_active: bool = True,
+    is_superuser: bool = False,
+) -> User:
+    """Helper to create a user directly via repository."""
+    hashed = hash_password(password)
+    user = await user_repository.create_user(
+        session=session,
+        user_object={
+            "username": username,
+            "email": email,
+            "password_hash": hashed,
+            "is_active": is_active,
+            "is_superuser": is_superuser,
+        },
     )
-
-    test_session.add(user)
-    await test_session.commit()
-    await test_session.refresh(user)
-
     return user
 
 
-@pytest_asyncio.fixture
-async def admin_user_in_db(test_session, user_data_factory):
-    """Create a superuser in test DB."""
-    data = user_data_factory(username="admin_test")
-    hashed_pw = hash_password(data["password"])
+@pytest_asyncio.fixture(scope="function")
+async def user(test_session) -> User:
+    """Fixture: created user."""
+    return await create_user_in_db(test_session)
 
-    user = User(
-        username=data["username"],
-        email=data["email"],
-        password_hash=hashed_pw,
-        is_active=True,
+
+@pytest_asyncio.fixture(scope="function")
+async def superuser(test_session) -> User:
+    """Fixture: created superuser."""
+    return await create_user_in_db(
+        test_session,
+        username="admin",
+        email="admin@example.com",
         is_superuser=True,
-        balance=0.0,
     )
 
-    test_session.add(user)
-    await test_session.commit()
-    await test_session.refresh(user)
 
-    return user
+@pytest_asyncio.fixture(scope="function")
+async def chat(test_session, user: User) -> Chat:
+    """Fixture: chat owned by `user`."""
+    created = await chat_repository.create_chat(
+        session=test_session,
+        chat_object=ChatCreate(user_id=user.id, title="Test chat"),
+    )
+    return created
+
+
+@pytest_asyncio.fixture(scope="function")
+async def msg(test_session, chat: Chat) -> Message:
+    """Fixture: message in `chat`."""
+    created = await message_repository.create_message(
+        session=test_session,
+        message_object=MessageCreate(role="user", content="Hello", chat_id=chat.id),
+    )
+    return created
 
 
 # ============================================================
-# FIXTURES: Test chats
+# FIXTURES: Services
 # ============================================================
 
 
-@pytest_asyncio.fixture
-async def test_chat_in_db(test_session, test_user_in_db):
-    """Create a chat in DB linked to test_user_in_db."""
-    chat = Chat(
-        user_id=test_user_in_db.id,
-        title="Test Chat",
-        provider="openai",
-        model="gpt-3.5-turbo",
-        temperature=0.7,
-        max_tokens=2000,
+@pytest_asyncio.fixture(scope="function")
+async def auth_service(test_session) -> AuthService:
+    return AuthService(test_session, user_repository)
+
+
+@pytest_asyncio.fixture(scope="function")
+async def user_service(test_session) -> UserService:
+    return UserService(test_session, user_repository)
+
+
+@pytest_asyncio.fixture(scope="function")
+async def chat_service(test_session) -> ChatService:
+    return ChatService(test_session, chat_repository)
+
+
+@pytest_asyncio.fixture(scope="function")
+async def message_service(test_session) -> MessageService:
+    return MessageService(test_session, message_repository)
+
+
+# ============================================================
+# FIXTURES: HTTP client against the real app (test DB)
+# ============================================================
+
+
+@pytest_asyncio.fixture(scope="function")
+async def client(test_engine) -> AsyncGenerator[AsyncClient, None]:
+    """
+    FastAPI app client. The global `database.session_factory`
+    is temporarily replaced with a factory bound to the in-memory
+    test engine, so all dependency-injected sessions hit the test DB.
+    """
+    from database import database  # type: ignore
+    from main import app  # type: ignore
+
+    original_factory = database.session_factory
+    database.session_factory = async_sessionmaker(
+        bind=test_engine,
+        autoflush=False,
+        autocommit=False,
+        expire_on_commit=False,
     )
 
-    test_session.add(chat)
-    await test_session.commit()
-    await test_session.refresh(chat)
-
-    return chat
+    transport = ASGITransport(app=app)
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as c:
+            yield c
+    finally:
+        database.session_factory = original_factory
+        app.dependency_overrides.clear()
