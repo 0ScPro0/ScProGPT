@@ -453,7 +453,13 @@ class TestChatRepository:
             is None
         )
 
-    async def test_delete_chat(self, test_session, chat):
+    async def test_delete_chat(self, test_session, chat, msg):
+        # chat owns one message — it must be cascaded on chat deletion
+        remaining = await message_repository.get_chat_messages(
+            session=test_session, chat_id=chat.id
+        )
+        assert len(remaining) == 1
+
         deleted = await chat_repository.delete_chat(
             session=test_session, chat_id=chat.id
         )
@@ -462,6 +468,12 @@ class TestChatRepository:
             await chat_repository.delete_chat(session=test_session, chat_id=chat.id)
             is None
         )
+
+        # no orphan messages stay behind
+        orphan = await message_repository.get_chat_messages(
+            session=test_session, chat_id=chat.id
+        )
+        assert orphan == []
 
 
 # ============================================================

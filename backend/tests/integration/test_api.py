@@ -295,6 +295,79 @@ class TestChatsEndpoints:
         assert resp.status_code == 200
         assert resp.json()["current_provider"] == "openai"
 
+    async def test_pin_chat(self, client):
+        body = await signup(client)
+        created = await client.post(
+            "/api/v1/chats/",
+            json={"title": "pin", "user_id": body["user"]["id"]},
+            headers=auth_headers(body["access_token"]),
+        )
+        chat_id = created.json()["id"]
+
+        pinned = await client.patch(
+            f"/api/v1/chats/{chat_id}/pin",
+            headers=auth_headers(body["access_token"]),
+        )
+        assert pinned.status_code == 200
+        assert pinned.json()["pinned"] is True
+
+        unpinned = await client.patch(
+            f"/api/v1/chats/{chat_id}/pin",
+            headers=auth_headers(body["access_token"]),
+        )
+        assert unpinned.json()["pinned"] is False
+
+    async def test_auto_title_from_first_message(self, client, override_ai):
+        from main import app  # type: ignore
+
+        override_ai(app)
+        body = await signup(client)
+        created = await client.post(
+            "/api/v1/chats/",
+            json={"title": "New chat", "user_id": body["user"]["id"]},
+            headers=auth_headers(body["access_token"]),
+        )
+        chat_id = created.json()["id"]
+
+        resp = await client.post(
+            f"/api/v1/chats/{chat_id}/messages/text",
+            json={"prompt": "Bubble Sort Python"},
+            headers=auth_headers(body["access_token"]),
+        )
+        assert resp.status_code == 200
+
+        chat = await client.get(
+            f"/api/v1/chats/{chat_id}",
+            headers=auth_headers(body["access_token"]),
+        )
+        assert chat.status_code == 200
+        assert chat.json()["title"] == "Bubble Sort Python"
+
+    async def test_no_auto_title_for_custom_name(self, client, override_ai):
+        from main import app  # type: ignore
+
+        override_ai(app)
+        body = await signup(client)
+        created = await client.post(
+            "/api/v1/chats/",
+            json={"title": "Custom Chat", "user_id": body["user"]["id"]},
+            headers=auth_headers(body["access_token"]),
+        )
+        chat_id = created.json()["id"]
+
+        resp = await client.post(
+            f"/api/v1/chats/{chat_id}/messages/text",
+            json={"prompt": "Ignore this prompt"},
+            headers=auth_headers(body["access_token"]),
+        )
+        assert resp.status_code == 200
+
+        chat = await client.get(
+            f"/api/v1/chats/{chat_id}",
+            headers=auth_headers(body["access_token"]),
+        )
+        assert chat.json()["title"] == "Custom Chat"
+
     async def test_delete_chat(self, client):
         body = await signup(client)
         created = await client.post(

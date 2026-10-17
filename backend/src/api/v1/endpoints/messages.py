@@ -96,6 +96,9 @@ async def create_assistant_message(
     ):
         raise PermissionDeniedError(f"User does not have access to this chat")
 
+    # Auto-name the chat from the first user message (topic of the dialog)
+    await chat_service.apply_auto_title(chat_id, request.prompt)
+
     try:
         # Create and save UserMessage
         user_message = MessageCreate(
@@ -168,6 +171,9 @@ async def create_assistant_message_stream(
         user_id=current_user.id, chat_id=chat_id
     ):
         raise PermissionDeniedError(f"User does not have access to this chat")
+
+    # Auto-name the chat from the first user message (topic of the dialog)
+    await chat_service.apply_auto_title(chat_id, request.prompt)
 
     try:
         # Create and save UserMessage

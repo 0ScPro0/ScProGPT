@@ -10,6 +10,8 @@ from schemas.chat import ChatCreate, ChatUpdate, ChatResponse
 from schemas.base import OperationResponse
 from utils.logger import log
 
+DEFAULT_CHAT_TITLES = {"New chat", "New Chat", ""}
+
 
 class ChatService(BaseService[Chat, ChatCreate, ChatUpdate, ChatRepository]):
     def __init__(self, session: AsyncSession, chat_repository: ChatRepository):
@@ -68,3 +70,56 @@ class ChatService(BaseService[Chat, ChatCreate, ChatUpdate, ChatRepository]):
         if not chat:
             return False
         return True
+
+    @log
+    async def toggle_chat_pin(self, chat_id: int) -> Optional[ChatResponse]:
+        """Pin/unpin the chat and return the updated chat."""
+        chat = await self.repository.get(self.session, chat_id)
+        if not chat:
+            return None
+
+        updated_chat = await self.repository.update_field(
+            session=self.session,
+            object_id=chat_id,
+            field_name="pinned",
+            field_value=not chat.pinned,
+        )
+        return ChatResponse.model_validate(updated_chat)
+
+    @log
+    async def apply_auto_title(self, chat_id: int, prompt: str) -> Optional[str]:
+        """
+        Auto-name the chat from the first user message.
+
+        If the chat still has a default title ("New chat"/"New Chat"),
+        it is replaced with a trimmed excerpt of the prompt (the topic of
+        the dialog is usually the first generation).
+
+        Returns:
+            The assigned title, or None if nothing was changed.
+        """
+        chat = await self.repository.get(self.session, chat_id)
+        if not chat or chat.title not in DEFAULT_CHAT_TITLES:
+            return None
+
+        title = self._make_title(prompt)
+        if not title:
+            return None
+
+        await self.repository.update_field(
+            session=self.session,
+            object_id=chat_id,
+            field_name="title",
+            field_value=title,
+        )
+        return title
+
+    @staticmethod
+    def _make_title(prompt: str, limit: int = 30) -> Optional[str]:
+        """Trim the user prompt into a short chat title."""
+        cleaned = " ".join(prompt.split())
+        if not cleaned:
+            return None
+        if len(cleaned) <= limit:
+            return cleaned
+        return cleaned[: limit + 1].rstrip() + "…"

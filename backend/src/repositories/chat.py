@@ -2,10 +2,11 @@
 from typing import List, Optional, Dict, Any, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select, desc, func
+from sqlalchemy import select, desc, func, delete
 
 from utils.logger import logger, log_database_queries
 from database.models.chat import Chat
+from database.models.message import Message
 from schemas.chat import ChatCreate, ChatUpdate
 from repositories.base import BaseRepository
 
@@ -313,7 +314,7 @@ class ChatRepository(BaseRepository[Chat, ChatCreate, ChatUpdate]):
         self, session: AsyncSession, *, chat_id: int
     ) -> Optional[Chat]:
         """
-        Delete chat
+        Delete chat together with all its messages (cascade).
 
         Args:
             session: Database session
@@ -325,6 +326,11 @@ class ChatRepository(BaseRepository[Chat, ChatCreate, ChatUpdate]):
         chat = await self.get_chat(session=session, chat_id=chat_id)
         if not chat:
             return None
+
+        # Explicitly remove related messages first, so they don't stay
+        # orphaned (and leak into a future chat reusing the same id).
+        await session.execute(delete(Message).where(Message.chat_id == chat_id))
+        await session.commit()
 
         deleted_chat = await self.delete(session=session, id=chat_id)
         return deleted_chat

@@ -78,7 +78,7 @@ class ChatUpdate(BaseModel):
 
 
 class SetTitleRequest(BaseModel):
-    title: str = Field("New chat", min_length=1, max_length=100)
+    title: str = Field("New chat", min_length=1, max_length=200)
 
 
 class ChatSchema(BaseChat):

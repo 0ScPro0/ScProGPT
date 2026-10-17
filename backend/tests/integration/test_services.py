@@ -14,6 +14,7 @@ from core.security import (  # type: ignore
     create_access_token,
     hash_password,
 )
+from services.chat import ChatService  # type: ignore
 from tests.conftest import create_user_in_db
 
 # ============================================================
@@ -133,6 +134,30 @@ class TestChatService:
     async def test_is_user_has_chat(self, chat_service, user, chat):
         assert await chat_service.is_user_has_chat(user.id, chat.id) is True
         assert await chat_service.is_user_has_chat(user.id, 99999) is False
+
+    async def test_toggle_chat_pin(self, chat_service, chat):
+        pinned = await chat_service.toggle_chat_pin(chat.id)
+        assert pinned.pinned is True
+        unpinned = await chat_service.toggle_chat_pin(chat.id)
+        assert unpinned.pinned is False
+        assert await chat_service.toggle_chat_pin(99999) is None
+
+    async def test_apply_auto_title(self, chat_service, chat):
+        title = await chat_service.apply_auto_title(chat.id, "How to draw a human")
+        assert title == "How to draw a human"
+        updated = await chat_service.get_chat(chat.id)
+        assert updated.title == "How to draw a human"
+        # a custom title is never overwritten
+        assert await chat_service.apply_auto_title(chat.id, "Other") is None
+        assert await chat_service.apply_auto_title(99999, "x") is None
+
+    def test_make_title_trims(self):
+        assert ChatService._make_title("   hello   world ") == "hello world"
+        assert ChatService._make_title("   ") is None
+        long = "x" * 100
+        made = ChatService._make_title(long)
+        assert len(made) <= 47
+        assert made.endswith("…")
 
 
 # ============================================================

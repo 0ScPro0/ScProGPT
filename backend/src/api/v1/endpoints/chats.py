@@ -152,6 +152,30 @@ async def get_provider_status(
     return await ai_service.get_status(chat_id=chat_id)
 
 
+# Toggle chat pin status
+@router.patch(
+    "/{chat_id}/pin",
+    response_model=ChatResponse,
+    summary="Pin or unpin a chat",
+    description="Toggle the pinned state of the specified chat",
+)
+@log
+async def toggle_chat_pin(
+    chat_id: int,
+    chat_service: ChatService = Depends(get_chat_service),
+    current_user: User = Depends(get_current_user),
+):
+    if not current_user:
+        raise AuthError("Not authenticated")
+
+    if not await chat_service.is_user_has_chat(
+        user_id=current_user.id, chat_id=chat_id
+    ):
+        raise PermissionDeniedError(f"User does not have access to this chat")
+
+    return await chat_service.toggle_chat_pin(chat_id)
+
+
 # Delete chat
 @router.delete(
     "/{chat_id}",
