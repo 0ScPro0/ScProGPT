@@ -18,6 +18,18 @@ export const chatService = {
         return response.data;
     },
 
+    // Toggle pinned state
+    async pinChat(chatId) {
+        const response = await apiClient.patch(`/chats/${chatId}/pin`);
+        return response.data;
+    },
+
+    // Rename the chat (title)
+    async renameChat(chatId, title) {
+        const response = await apiClient.patch(`/chats/${chatId}/title`, { title });
+        return response.data;
+    },
+
     async deleteChat(chatId) {
         const response = await apiClient.delete(`/chats/${chatId}`);
         return response.data;

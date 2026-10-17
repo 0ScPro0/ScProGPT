@@ -3,19 +3,35 @@
     --bg-color: rgb(0, 0, 0);
     --bg-color-chat: rgb(0, 0, 0);
     --bg-color-07: rgba(0, 0, 0, 0.7);
+    --bg-color-negative: rgb(255, 255, 255);
+
     --icon-color: rgb(255, 255, 255);
+    --icon-color-negative: rgb(0, 0, 0);
+
     --text-color: rgb(255, 255, 255);
+    --text-color-negative: rgb(0, 0, 0);
+
     --border: 1px solid rgb(255, 255, 255);
     --border-color-muted: rgba(255, 255, 255, 0.2);
+
     --scrollbar-color: rgb(255, 255, 255);
+
     --user-message-bg-color: rgb(32, 32, 32);
+
     --input-color: rgb(23, 23, 23);
+
     --hover-color: rgb(35, 35, 35);
+    --hover-color-negative: rgb(244, 244, 244);
+
     --active-color: rgb(52, 52, 52);
+    --active-color-negative: rgb(219, 219, 219);
+
     --focus-ring: rgba(255, 255, 255, 0.15);
+
     --glow-box: 0 0 20px rgba(255, 255, 255, 0.3),
                 0 0 40px rgba(255, 255, 255, 0.3),
                 0 0 60px rgba(255, 255, 255, 0.1);
+
     --btn-primary-bg: rgb(255, 255, 255);
     --btn-primary-text: rgb(0, 0, 0);
     --btn-primary-border: none;
@@ -27,19 +43,35 @@
     --bg-color: rgb(255, 255, 255);
     --bg-color-chat: rgb(242, 242, 242);
     --bg-color-07: rgba(255, 255, 255, 0.7);
+    --bg-color-negative: rgb(0, 0, 0);
+
     --icon-color: rgb(0, 0, 0);
+    --icon-color-negative: rgb(255, 255, 255);
+
     --text-color: rgb(0, 0, 0);
+    --text-color-negative: rgb(255, 255, 255);
+
     --border: 1px solid rgb(0, 0, 0);
     --border-color-muted: rgba(0, 0, 0, 0.2);
+
     --scrollbar-color: rgb(0, 0, 0);
+
     --user-message-bg-color: rgb(218, 218, 218);
+
     --input-color: rgb(244, 244, 244);
+
     --hover-color: rgb(244, 244, 244);
-    --active-color: rgb(52, 52, 52);
+    --hover-color-negative: rgb(35, 35, 35);
+
+    --active-color: rgb(219, 219, 219);
+    --active-color-negative: rgb(52, 52, 52);
+
     --focus-ring: rgba(0, 0, 0, 0.15);
+
     --glow-box: 0 0 40px rgba(0, 0, 0, 0.5),
                 0 0 60px rgba(0, 0, 0, 0.3),
                 0 0 80px rgba(0, 0, 0, 0.1);
+
     --btn-primary-bg: rgb(0, 0, 0);
     --btn-primary-text: rgb(255, 255, 255);
     --btn-primary-border: none;

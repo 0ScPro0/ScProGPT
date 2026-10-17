@@ -1,10 +1,10 @@
 import styles from "./Header.module.css"
 import { Topbar } from "./Topbar"
 
-export function Header(){
+export function Header({ chatTitle = null }){
     return (
         <header className={styles.header}>
-            <Topbar />
+            <Topbar chatTitle={chatTitle} />
         </header>
     )
 }

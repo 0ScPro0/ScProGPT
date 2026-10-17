@@ -9,8 +9,9 @@ import { useThemeStore } from "../../../stores/themeStore";
 import { ImageButton } from "../../ui/common/Button"
 import { ChatName } from "./ChatName"
 
-export function Topbar({ 
-    chatName = "New Chat", 
+export function Topbar({
+    chatName = "New Chat",
+    chatTitle = null,
 }){
 
     const { toggleTheme, currentTheme } = useThemeStore();
@@ -19,7 +20,7 @@ export function Topbar({
         <div className={styles.topbar}>
             <div className={styles.left}></div>
             <div className={styles.center}>
-                <ChatName>{chatName}</ChatName>
+                <ChatName>{chatTitle || chatName}</ChatName>
             </div>
             <div className={styles.right}>
                 <ImageButton

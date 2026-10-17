@@ -6,8 +6,8 @@ import { MessageFromAssistant } from "../Message/MessageFromAssistant";
 import { useChat } from "../../../hooks/useChat"
 import { messageService } from "../../../services/api/message"
 
-export function Chat({ collapsed = false, chatId = null }){
-    // useChat hook
+export function Chat({ collapsed = false, chatId = null, onChatCreated = null }){
+    // useChat hook — sending logic lives here (lazy chat creation + AI reply)
     const {
         messages,
         setMessages,
@@ -15,7 +15,7 @@ export function Chat({ collapsed = false, chatId = null }){
         setInputText,
         sendMessage,
         handleKeyDown,
-    } = useChat()
+    } = useChat({ chatId, onChatCreated })
 
     const [loading, setLoading] = useState(false)
 
@@ -87,16 +87,6 @@ export function Chat({ collapsed = false, chatId = null }){
                                             <span>•</span> <span>•</span> <span>•</span>
                                         </div>
                                     </div>
-                                </MessageFromAssistant>
-                            );
-                        }
-
-                        // Если сообщение еще печатается
-                        if (message.isTyping) {
-                            return (
-                                <MessageFromAssistant key={message.id}>
-                                    {message.text}
-                                    <span className={styles.typing_cursor} />
                                 </MessageFromAssistant>
                             );
                         }

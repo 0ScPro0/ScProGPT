@@ -1,39 +1,178 @@
-.chat_button {
+.row {
+    position: relative;
     display: flex;
     align-items: center;
-    width: calc(100% - 46px);
+    gap: 8px;
+    width: calc(100% - 72px);
     margin: 2px 20px;
-    padding: 12px 14px;
+    padding: 8px 14px;
     background-color: transparent;
     color: var(--text-color);
-    border: none;
-    border-radius: 12px;
+    border-radius: 15px;
     cursor: pointer;
     text-align: left;
-    font-size: 16px;
-    font-weight: bold;
-    font-family: Roboto, sans-serif;
-
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 
     transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
                 transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.chat_button:hover {
+.row:hover {
     background-color: var(--hover-color);
     transform: translateY(-1px);
 }
 
-.chat_button:active {
+.row:active {
     background-color: var(--active-color);
     transform: translateY(0) scale(0.98);
 }
 
-.chat_button_active,
-.chat_button_active:hover {
+.row_active,
+.row_active:hover {
     background-color: var(--active-color);
+}
+
+.title {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 15px;
+    font-family: Roboto, sans-serif;
+}
+
+.row_active .title {
     font-weight: 600;
+}
+
+/* Horizontal ellipsis — shown on hover / when the menu is open */
+.more {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+    border-radius: 45px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.row:hover .more,
+.row_active .more,
+.more_open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.more:hover {
+    background-color: var(--border-color-muted);
+}
+
+/* Popup menu */
+.menu {
+    position: absolute;
+    top: calc(100% - 6px);
+    right: 10px;
+    z-index: 1100;
+    min-width: 140px;
+    padding: 6px;
+    background-color: var(--bg-color);
+    border: var(--border);
+    border-radius: 12px;
+    box-shadow: var(--glow-box);
+
+    animation: menuAppear 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes menuAppear {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.menu_item {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    font-family: Roboto, sans-serif;
+
+    transition: background-color 0.15s ease;
+}
+
+.menu_item:hover {
+    background-color: var(--hover-color);
+}
+
+.menu_item:active {
+    background-color: var(--active-color);
+}
+
+/* Inline title editing input (looks like the title) */
+.title_input {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+    border-bottom: 1px solid var(--border-color-muted);
+    outline: none;
+    font-size: 15px;
+    font-family: Roboto, sans-serif;
+}
+
+/* Open row: raise above siblings and stop the hover "jump" (transform)
+   that made the popup shake and steal clicks. */
+.row_menu_open,
+.row_menu_open:hover,
+.row_menu_open:active {
+    z-index: 1100;
+    transform: none;
+}
+
+/* Icon + label layout for menu actions (added on top of .menu_item) */
+.menu_item_action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.menu_item_icon {
+    flex-shrink: 0;
+    display: flex;
+    color: var(--text-color);
+}
+
+/* Icon + label layout for menu actions (added on top of .menu_item) */
+.menu_item_action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.menu_item_icon {
+    flex-shrink: 0;
+    display: flex;
+    color: var(--text-color);
 }
